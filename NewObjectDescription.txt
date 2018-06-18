@@ -1,0 +1,828 @@
+==================================================================================
+1. object
+==================================================================================
+
+new (object.pm)
+  Takes an optional array of features and values as input. Returns a new object of the appropriate subclass, with the appropriate features and values.
+
+openNGramDatabase (languagemodeling_5gram.pm)
+  Opens the n-gram database. Creates a new DBI::db object with parameters that allow connection with postgres database containing the language-specific language models. Uses DBI::db::new (Database.pm).
+
+openWordnet (synset_cornetto.pm)
+  Opens the WordNet database. Creates a new DBI::db object with parameters that allow connection with postgres database containing the language-specific WordNet. Uses DBI::db::new (Database.pm).
+
+pushFeature (object.pm)
+  Takes a feature name and value (reference to array) as input. Pushes the value into the value array of the feature. Creates the value array of the feature if it does not exist.
+
+==================================================================================
+2. message
+ISA("object")
+==================================================================================
+
+addFullStop (object.pm)
+  Adds a full stop to the end of the message if not ending in a punctuation.
+
+addPictos (picto.pm)
+  Adds the pictos to a message. Uses Sentence::addPictos (picto.pm).
+  
+addPictoPaths (picto.pm)
+  Adds the pictopaths that represent the message. Uses message::addPictos (picto.pm) and message::searchArgMax (picto.pm).
+
+addSynsets (synset.pm)
+  Adds synsets to the message. Uses object::openWordnet (object.pm) and sentence::addSynsets (synset.pm).
+
+addSyntaxInfo (simplify_cornetto.pm)
+  The first step in the simplification process. Uses Alpino's treebank to build a hierarchy of sentence and word objects. Uses message::buildInterrogativeSentence (simplify_cornetto.pm), message::buildMainSentenceWithSubjectCheck (simplify_cornetto.pm), message::buildMainSentence (simplify_cornetto.pm), message::buildRelSentence (simplify_cornetto.pm), message::buildOTISentence (simplify_cornetto.pm), message::buildSSUBSentence (simplify_cornetto.pm), message::buildAppSentence (simplify_cornetto.pm), and message::buildPPRESSentence (simplify_cornetto.pm).
+
+addWsdScores (wsd.pm)
+  Adds the WSD scores to their matching synsets, using the sentence and word IDs to disambiguate between identical words.
+
+analyzeTime (simplify_cornetto.pm)
+  The main time analysis module. Uses sentence::addTimeRules (simplify_cornetto.pm), sentence::changeVerbOrder (simplify_cornetto.pm), and sentence::generateTimePicto (simplify_cornetto.pm).
+
+applyAlpino (simplify_cornetto.pm)
+  Performs an Alpino parse. Writes the output to a treebank.
+
+buildAppSentence (simplify_cornetto.pm)
+  Creates a sentence object from an appositive clause. Uses message::fetchAppositionAntecedent (simplify_cornetto.pm) and message::buildWordObjects (simplify_cornetto.pm).
+
+buildInterrogativeSentence (simplify_cornetto.pm)
+  Creates a sentence object from an interrogative clause. Uses message::fetchQuestionWord (simplify_cornetto.pm) and message::buildWordObjects (simplify_cornetto.pm).
+
+buildMainSentence (simplify_cornetto.pm)
+  Creates a sentence object from a main clause. Uses message::buildWordObjects (simplify_cornetto.pm).
+
+buildMainSentenceWithSubjectCheck (simplify_cornetto.pm)
+  Creates a sentence object from a main clause that potentially has a missing subject. Uses message::buildWordObjects (simplify_cornetto.pm).
+
+buildOTISentence (simplify_cornetto.pm)
+  Creates a sentence object from an OTI clause. Uses message::buildWordObjects (simplify_cornetto.pm).
+
+buildPPRESSentence (simplify_cornetto.pm)
+  Creates a sentence object from a PPRES clause. Uses message::buildWordObjects (simplify_cornetto.pm).
+
+buildRelSentence (simplify_cornetto.pm)
+  Creates a sentence object from a relative clause. Uses message::fetchAntecedent (simplify_cornetto.pm) and message::buildWordObjects (simplify_cornetto.pm).
+
+buildSSUBSentence (simplify_cornetto.pm)
+  Creates a sentence object from a subordinate clause. Uses message::buildWordObjects (simplify_cornetto.pm).
+
+buildPhraseObjects (simplify_cornetto.pm)
+  Creates phrase objects. Uses message::buildPhraseObjects (simplify_cornetto.pm) recursively.
+
+buildWordObjects (simplify_cornetto.pm)
+  Creates word objects. If a node is non-terminal, it is a phrase. In that case, message::buildPhraseObjects (simplify_cornetto.pm) is called. 
+
+checkCompress (simplify_cornetto.pm)
+  Checks whether the compression module is activated. If this is the case, sentence::compress (simplify_cornetto.pm) is called.
+
+convertWsd (wsd.pm)
+  Converts the WSD output to a format that can be used in the Picto tools.
+
+cornettoWsd (wsd.pm)
+  The main WSD module. Uses message::createNewTextAndLabelObjects (wsd.pm), message::generateInputFile (wsd:pm), message::useWsdTool (wsd.pm), message::convertWsd (wsd.pm), and message::addWsdScores (wsd.pm).
+
+createInputFileForAlpino (simplify_cornetto.pm)
+  Creates a temporary input file for Alpino (one sentence per line).
+
+createNewTextAndLabelObjects (wsd.pm)
+  Adds unique sentence IDs and word IDs to every sentence object and word object. This is needed for disambiguation purposes.
+
+detectSentences (object.pm)
+  Takes a tokenised message as input and embeds the word objects into sentence objects. Uses message::tokenize (object.pm) if called by an untokenised message.
+
+fetchAntecedent (simplify_cornetto.pm)
+  Retrieves the antecedent from the object hierarchy.
+
+fetchAppositionAntecedent (simplify_cornetto.pm)
+  Retrieves the apposition's antecedent from the object hierarchy.
+
+fetchQuestionWord (simplify_cornetto.pm)
+  Retrieves the question word from the object hierarchy.
+
+findBestBiGrams (NGramPredictor.pl)
+  Looks up the most probable pictograph bigram in the picto n-gram database, using the previously inserted pictograph as the first element of the bigram.
+
+findBestTriGrams (NGramPredictor.pl)
+  Looks up the most probable pictograph trigram in the picto n-gram database, using the two previously inserted pictographs as the first elements of the trigram.
+
+findSeparableVerbs (simplifybackup.pm)
+  Activated when Alpino is disabled or fails. Detects seperable verbs in each of the sentences of the calling message. Uses sentence::findSeparableVerbs (simplifybackup.pm).
+
+generateWsdInputFile (wsd.pm)
+  Generates an input file for the WSD tool.
+
+generateProperText (languagemodeling_5gram.pm)
+  Turns the message from Beta/Sclera into proper natural language text using the language model. Uses sentence::generateProperText (languagemodeling_5gram.pm).
+
+generateStartOfSentence (NGramPredictor.pl)
+  Generates a beginning of sentence word object.
+
+HTMLOut (picto.pm)
+  Provides HTML output of the message, pointing to picto images. Uses sentence::HTMLOut (picto.pm).
+
+intersectAssociations (WordAssociationPredictor.pl)
+  Intersects the association lists that were created by looking up every picto's most frequent lemma in the semantic space. Uses DBI::db::lookup (Database.pm).
+
+JSONOut (picto.pm)
+  Provides JSON output of the message. Uses sentence::JSONOut (picto.pm).
+
+lemmatize (object.pm) 
+  Expects a tagged message as input. Lemmatises each of the sentences in the message using sentence::lemmatize (object.pm).
+
+lookupPictoDictionary (picto.pm)
+  Looks up the words in the message in the picto dictionary. Uses openWordnet (object.pm) and sentence::lookupPictoDictionary (picto_cornetto.pm).
+
+openNGramDatabase (NGramPredictor.pl)
+  Opens the picto n-gram database. Creates a new DBI::db object with parameters that allow connection with postgres database containing the language-specific language models. Uses DBI::db::new (Database.pm).
+
+ParallelJSONOut (picto.pm)
+  Provides parallel text and JSON output of the message. Uses sentence::ParallelOutOtherFile (picto.pm) and sentence::ParallelJSONOut (picto.pm).
+
+predictNextWord (NGramPredictor.pl)
+  Takes an array of word objects as input and predicts the next word using picto n-grams. Uses message::openNGramDatabase (NGramPredictor.pl), message::generateStartOfSentence (NGramPredictor.pl), message::findBestBiGrams (NGramPredictor.pl), and message::findBestTriGrams (NGramPredictor.pl).
+
+preProcess (simplify_cornetto.pm)
+  Removes emoji and deals with the "hoe gaat het" expressions, which generate one pictograph.
+
+retrieveAssociations (WordAssociationPredictor.pl)
+  Retrieves associated pictographs for pictographs that are previously inserted by the user. Uses object::openWordnet (object.pm), word::retrieveLemmas (WordAssociationPredictor.pl), word::findMostFrequentLemma (WordAssociationPredictor.pl), word::findAssociations (WordAssociationPredictor.pl), word::lemmatizeAssociations (WordAssociationPredictor.pl), word::findMostFrequentDepLemma (WordAssociationPredictor.pl), word::findDepAssociations (WordAssociationPredictor.pl), and word::lemmatizeDepAssociations (WordAssociationPredictor.pl).
+
+searchArgMax (picto.pm)
+  Looks for the optimal path to convert the message into pictos. Uses sentence::searchArgMax (picto.pm).
+
+simplify (simplify_cornetto.pm)
+  The second step in the simplification process. Contains a number of sub-modules that take care of re-ordering. Uses sentence::movePPsToBack (simplify_cornetto.pm), sentence::checkForPassives (simplify_cornetto.pm), sentence::addPolarity (simplify_cornetto.pm), sentence::changeOrder (simplify_cornetto.pm), sentence::buildWordObjects (simplify_cornetto.pm), and sentence::addQuestionMark (simplify_cornetto.pm).
+
+spellCheck (SpellCorrector_cornetto.pm)
+  Spell checks and corrects the input message. Uses sentence::removeCapitalFirstWord (SpellCorrector_cornetto.pm), sentence::changeAllUpperCaseToLower (SpellCorrector_cornetto.pm), sentence::convertContractionsAndCommonAbbreviations (SpellCorrector_cornetto.pm), sentence::findNonWords (SpellCorrector_cornetto.pm), sentence::findVariants (SpellCorrector_cornetto.pm), sentence::filterVariants (SpellCorrector_cornetto.pm), sentence::buildAllSentences (SpellCorrector_cornetto.pm), sentence::makeSplitSentences (SpellCorrector_cornetto.pm), and sentence::fuzzyMatch (SpellCorrector_cornetto.pm).
+
+tag (simplifybackup.pm)
+  Activated when Alpino is disabled or fails. Tags the calling message. Writes a temporary output file to timestamp. Uses the Hunpos tagger and writes the output of the tagger to timestamp.tmp. Unlinks timestamp. Reads in timestamp.tmp, and creates a new word object per line in timestamp.tmp. Unlinks timestamp.tmp.
+
+taglemmatize (simplify_cornetto.pm)
+  Either activates the sub-modules of the original baseline taglemmatize module, or performs an Alpino parse and applies a series of simplification operations. Uses message::addFullStop (object.pm), message::preProcess (simplify_cornetto.pm), message::createInputFileForAlpino (simplify_cornetto.pm), message::tokenize (object.pm), message::tag (simplifybackup.pm), message::detectSentences (object.pm), message::findSeparableVerbs (simplifybackup.pm), message::lemmatize (object.pm), message::applyAlpino (simplify_cornetto.pm), message::addSyntaxInfo (simplify_cornetto.pm), message::simplify (simplify_cornetto.pm), message::analyzeTime (simplify_cornetto.pm), and message::checkCompress (simplify_cornetto.pm).
+
+TextOut (picto.pm)
+  Provides text output of the message. Uses sentence::TextOut (picto.pm).
+
+tokenize (object.pm)
+  Tokenises the calling message. Turns a text string into a list of word objects.
+
+useWsdTool (wsd.pm)
+  Activates the WSD tool. Writes the output to a temporary file.
+
+wordBuilder (SpellCorrector_cornetto.pl)
+  Checks for every two tokens whether they are non-words or infrequent real words. If this is the case, check if their compound exists (with a minimum frequency).
+
+==================================================================================
+3. sentence
+ISA("object")
+==================================================================================
+
+adaptPolarity (simplifybackup.pm)
+  Activated when Alpino is disabled or fails. If a negative word is found, looks for the head of this word and puts the negative word in the {polarity} feature of the head word. Removes the negative word from the word list.
+
+addObjectBehindVerbs (simplify_cornetto.pm)
+  Adds the object antecedent behind the verb group.
+
+addPictos (picto.pm)
+  Adds pictos to the words in the sentence. Uses word::addPictosNotInWordnet (picto_cornetto.pm), word::lookupPictoDictionary (picto_cornetto.pm), word::isContentWord (picto_cornetto.pm), and word::addPictos (picto.pm).
+
+addPolarity (simplify_cornetto.pm)
+  Gives words a {polarity} feature if a negative is found.
+
+addSubjectToFront (simplify_cornetto.pm)
+  Adds the subject antecedent to the beginning of the sentence.
+
+addSynsets (synset.pm)
+  Adds synsets to the message. Calls object::openWordnet (object.pm) and word::addWordNet (synset_cornetto.pm).
+
+addTimeRules (simplify_cornetto.pm)
+  Counts the amount of verbs in the verb group. Activates the temporal analysis rules. Uses sentence::applyVerbRules (simplify_cornetto.pm).
+
+addToBeInFront (simplify_cornetto.pm)
+  Creates a "to be" word object and adds it to the beginning of the sentence.
+
+addQuestionMark (simplify_cornetto.pm)
+  Adds a question mark word object when the sentence type is interrogative.
+
+addQuestionWordToFront (simplify_cornetto.pm)
+  Adds the question word to the beginning of the sentence.
+
+applyVerbRules (simplify_cornetto.pm)
+  Applies the rules for verb group simplification. Marks temporality and verb order.
+
+buildAllSentences (spellCorrector_cornetto.pl)
+  Creates all possible combinations of spelling variants, resulting in a number of hypotheses, which are pushed into the {alternativesentences} feature.
+
+buildWordObjects (simplify_cornetto.pm)
+  Flattens the word object structure for further picto operations after syntactic simplification. Uses sentence::getWords (simplify_cornetto.pm).
+
+changeAllUpperCaseToLower (spellCorrector_cornetto.pl)
+  Converts sentences that are written in all uppercase characters into lowercase characters.
+
+changeOrder (simplify_cornetto.pm)
+  Reorders verbs, subjects, and antecedents. Uses sentence::findAllVerbs (simplify_cornetto.pm), sentence::moveMainAndSSUBVerbs (simplify_cornetto.pm), sentence::moveRelObjectVerbs (simplify_cornetto.pm), sentence::moveRelSubjectVerbs (simplify_cornetto.pm), sentence::createAppositionSentences (simplify_cornetto.pm), sentence::moveQuestionVerbs (simplify_cornetto.pm), and sentence::makeActive (simplify_cornetto.pm).
+
+changeVerbOrder (simplify_cornetto.pm)
+  Changes the order of the verbs in the verb group. Deletes verbs that do not longer contribute to the overall meaning of the verb group.
+
+checkForPassives (simplify_cornetto.pm)
+  Checks if the sentence is a passive sentence and adds this as one of the sentence's features. Uses sentence::checkPhraseForPassives (simplify_cornetto.pm).
+  
+checkPhraseForPassives (simplify_cornetto.pm)
+  Checks phrases to determine whether the sentence is a passive sentence and adds this as one of the sentence's features. Uses sentence::checkPhraseForPassives (simplify_cornetto.pm) recursively.
+
+convertContractionsAndCommonAbbreviations (spellCorrector_cornetto.pl)
+  Converts a number of commonly appearing contractions and abbreviations into its fully written form.
+
+compress (simplify_cornetto.pm)
+  Compresses the sentence object, removing adjectives, adverbs, and function words.
+
+createAppositionSentences (simplify_cornetto.pm)
+  Creates a sentence for appositive clauses. Uses sentence::addToBeInFront (simplify_cornetto.pm) and sentence::addSubjectToFront (simplify_cornetto.pm).
+
+filterVariants (spellCorrector_cornetto.pl)
+  Throws away non-occurring combinations of variants based on the n-gram language model. Uses DBI::db::lookup (Database.pm).
+
+findAgens (simplify_cornetto.pm)
+  Searches for the agent in passive sentences.
+
+findAllVerbs (simplify_cornetto.pm)
+  Finds all verbs in the sentence object and clusters them into a verb group. Checks for verbs in phrases using sentence::findAllVerbsInPhrase (simplify_cornetto.pm).
+
+findAllVerbsInPhrase (simplify_cornetto.pm)
+  Finds all verbs in the phrase object and clusters them into a verb group. Checks for verbs in phrases recursively using sentence::findAllVerbsInPhrase (simplify_cornetto.pm).
+
+findNonWords (spellCorrector_cornetto.pl)
+  Determines which tokens are non-words and which ones are real words. Uses word::lookupInDictionary (spellCorrector_cornetto.pl).
+
+findSeparableVerbs (simplifybackup.pm)
+  Activated when Alpino is disabled or fails. Detects seperable verbs in the calling sentences. Uses information from Vandeghinste (2002) to decide whether the most plausible candidate for a separable verb is more likely than keeping the parts apart.
+
+findVariants (spellCorrector_cornetto.pl)
+ Generates variants for non-words or infrequent real words. Adds the variants to the {spellingalternatives} feature. Uses word::findPhoneticVariants (FindCharacterRules.pm), word::wordSplitter (spellCorrector_cornetto.pl), word::findOneInsertion (spellCorrector_cornetto.pl), word::findOneDeletion (spellCorrector_cornetto.pl), word::findOneSubstitution (spellCorrector_cornetto.pl), and word::findOneTransposition (spellCorrector_cornetto.pl).
+
+fuzzymatch (spellCorrector_cornetto.pl)
+  Uses fuzzy matching techniques to select the best spelling hypothesis. Uses sentence::retrieveLines (spellCorrector_cornetto.pl).
+
+generateAlternatives (languagemodeling_5gram.pm)
+  Generates different alternatives for the calling word object. Returns a reference to an array of arrays of word objects. Uses word::generateAlternatives (languagemodeling_5gram.pm).	
+  
+generateEndOfSentence (languagemodeling_5gram.pm)
+  Returns a word object containing </s> as lemma and as token.
+  
+generateProperText (languagemodeling_5gram.pm)
+  Turns the message from Beta/Sclera into proper natural language text using the language model. Uses sentence::generateAlternatives (languagemodeling_5gram.pm), sentence::generateStartOfSentence (languagemodeling_5gram.pm), sentence::generateEndOfSentence (languagemodeling_5gram.pm), object::openNGramDatabase (languagemodeling_5gram.pm), pictoPath::containsAllInfo (picto.pm), sentence::sortSentencePathQ (languagemodeling_5gram.pm), sentencePath::hypothesisSolved (languagemodeling_5gram.pm), and sentencePath::printOutput (LanguageModeling_cornetto.pm).
+
+generateStartOfSentence (languagemodeling_5gram.pm)
+  Returns a word object containing <s> as lemma and as token.
+  
+generateTimePicto (simplify_cornetto.pm)
+  Generates the appropriate temporal pictograph.
+
+getWords (simplify_cornetto.pm)
+  Recursively looks for word objects in phrases. Uses sentence::getWords (simplify_cornetto.pm).
+
+HTMLOut (picto.pm)
+  Provides HTML output of the message, pointing to picto images. Uses beta/sclera::getURL (beta.pm/sclera.pm) and beta/sclera::getPictoDirs (beta.pm/sclera.pm).
+
+JSONOut (picto.pm)
+  Provides JSON output of the message. 
+
+lemmatize (object.pm)
+  Lemmatises each of the words in the sentence. Uses word::lemmatize (simplifybackup.pm).
+
+makeActive (simplify_cornetto.pm)
+  Converts a passive sentence into an active one by moving the patient and the agent. Uses sentence::findAgens (simplify_cornetto.pm).
+
+makeSplitSentences (spellCorrector_cornetto.pl)
+  Splits the hypotheses sentences into characters and pushes them into the {splitsentences} feature. This is the pre-processing step for the character-based fuzzy matching.
+
+moveAllVerbsBehindSubject (simplify_cornetto.pm)
+  Moves the verb group in front of the subject, if any.
+
+moveAllVerbsToFront (simplify_cornetto.pm)
+  Moves the verb group to the front of the sentence.
+
+moveInterrogativeVerbs (simplify_cornetto.pm)
+  Moves verb groups in interrogative clauses. Uses sentence::moveAllVerbsBehindSubject (simplify_cornetto.pm) and sentence::addQuestionWordToFront (simplify_cornetto.pm).
+
+moveMainAndSSUBVerbs (simplify_cornetto.pm)
+  Moves verb groups in main, OTI, and SSUB clauses. Uses sentence::addSubjectToFront (simplify_cornetto.pm) and sentence::moveAllVerbsBehindSubject (simplify_cornetto.pm).
+
+movePPsToBack (simplify_cornetto.pm)
+  Moves PPs and adverbs at the beginning of the sentence (in front of subject) to the back of the sentence.  
+
+moveRelObjectVerbs (simplify_cornetto.pm)
+  Moves verb groups in relative clauses that have an (in)direct object function. Uses sentence::moveAllVerbsBehindSubject (simplify_cornetto.pm) and sentence::addObjectBehindVerbs (simplify_cornetto.pm).
+
+moveRelSubjectVerbs (simplify_cornetto.pm)
+  Moves verb groups in relative clauses that have a subject function or PPRES clauses. Uses sentence::moveAllVerbsToFront (simplify_cornetto.pm) and sentence::addSubjectToFront (simplify_cornetto.pm).
+
+ParallelJSONOut (picto.pm)
+  Provides parallel text and JSON output of the message. 
+
+ParallelOutOtherFile (picto.pm)
+  Creates a temporary file for generating parallel JSON output.
+
+removeCapitalFirstWord (spellCorrector_cornetto.pl)
+  Lowercases the first word of each sentence.
+
+removeDoublePaths (picto.pm)
+  Takes a reference to a list of paths as input. Removes doubles in the list of paths. Uses pictopath::stringify (picto.pm) and pictopath::weight (picto.pm).
+
+removeFlooding (spellCorrector_cornetto.pl)
+  Tackles "flooding". When more than 2 identical characters appear in sequence, they are reduced to a maximum of 2 characters.
+
+retrieveLines (spellCorrector_cornetto.pl)
+  Retrieves the lines from the fuzzy matching output file and calculates the winning hypothesis. Determines whether a highly similar character match is found. If this is the case, performs new substitutions in the hypothesis.
+
+searchArgMax (picto.pm)
+  Looks for the optimal path to convert the message into pictos. Uses sentence::removeDoublePaths (picto.pm) and sentence::SortQ (picto.pm).
+
+sortQ (picto.pm)
+  Takes a reference to a list of paths as input. Returns a sorted list of paths, sorted by their weight. Uses pictopath::weight (picto.pm).
+
+sortSentencePathQ (languagemodeling_5gram.pm)
+  Takes an array of sentence paths as input and sorts them by their cost.  
+  
+TextOut (picto.pm)
+  Provides text output of the sentence.
+
+==================================================================================
+4. word
+ISA("object")
+==================================================================================
+
+adaptToPolarity (picto.pm)
+  For every word that has a negative polarity (as marked under the {polarity} feature), it is looked up whether, for the pictos attached to this word, there exists a negative picto in the database.
+  
+addLexUnits (synset.pm)
+  Adds lexical units retrieved from the WordNet database. Looks up the lemma in the database and creates a new lexunit for each matching lexical unit. Returns "undefined" when no lexunits are found.
+  
+addPictos (picto.pm)
+  Adds picto objects to a word. Uses lexunit::addPicto (picto.pm) for each lexical unit in the word. If no lexical units are present, uses word::addPictosNotInWordnet (picto_cornetto.pm).
+
+addPictosNotInWordnet (picto_cornetto.pm)
+  Adds pictos which are not represented in the lexical semantic database.
+
+addSynsets (synset.pm)
+  Adds the synsets to the object. Uses lexunit::addSynset (synset.pm) for each lexunit. If lexunits have not yet been added, word::addLexUnits (synset.pm) is called first.
+
+addWordnet (synset_cornetto.pm)
+  Checks if word matches a noun, verb, adjective, or adverb tag. Uses word::addLexUnits (synset.pm) and word::addSynsets (synset.pm).
+
+checkDictionary (WordAssociationPredictor.pl) 
+  Checks if a picto is found in the dictionary. If so, retrieve an array of lemmas that are found in the dictionary.
+
+checkPronouns (WordAssociationPredictor.pl) 
+  Checks if a picto is found in the list of pronouns. If so, retrieve an array of associated pronouns.
+
+containsNoun (languagemodeling_5gram.pm)
+  Checks whether the alternative (inflected form) is a noun. Uses word::isNoun (LanguageModeling_cornetto.pm).  
+
+endOfSentence (simplifybackup.pm)
+  Activated when Alpino is disabled or fails. Checks if the calling word object is an end of sentence symbol. Returns 1 or "undefined".
+
+filterLexUnitsAccordingToPos (synset_cornetto.pm)
+  Removes lexunits from list when POS tag does not match Wordnet POS tag.
+
+filterPos (LanguageModeling_cornetto.pm)
+  Takes a word object and an array of part-of-speech tags as input. Checks whether the part-of-speech tags match the part-of-speech tag of the word object. Returns the part-of-speech tags that have been matched.
+
+findMostFrequentDepLemma (WordAssociationPredictor.pl) 
+  Finds the most frequent lemma in an array of lemmas of dependent synsets, according to a lexicon.
+
+findMostFrequentLemma (WordAssociationPredictor.pl)
+  Finds the most frequent lemma in an array of lemmas of single or head synsets, according to a lexicon.
+
+findOneDeletion (spellCorrector_cornetto.pl)
+  Checks for a non-word or an infrequent real word whether a character deletion leads to the creation of a real word with a minimum frequency.
+
+findOneInsertion (spellCorrector_cornetto.pl)
+  Checks for a non-word or an infrequent real word whether a character insertion leads to the creation of a real word with a minimum frequency.
+
+findOneSubstitution (spellCorrector_cornetto.pl)
+  Checks for a non-word or an infrequent real word whether a character substitution leads to the creation of a real word with a minimum frequency.  
+
+findOneTransposition (spellCorrector_cornetto.pl)
+  Checks for a non-word or an infrequent real word whether an adjacent character transposition leads to the creation of a real word with a minimum frequency.
+
+findPhoneticVariants (FindCharacterRules.pm)
+  Checks for every non-word and low-frequency real word whether a real-word phonetic variant can be generated by splitting it into individual character sequences and replacing them by phonetically similar character sequences.
+
+generateAlternatives (languagemodeling_5gram.pm)
+  Generates different alternatives for the calling word object. Returns a reference to an array of arrays of word objects. Uses word::getAlternativeWordObjects (languagemodeling_5gram.pm), picto::getAlternativeWordObjects (languagemodeling_5gram.pm), word::lookupFileName (languagemodeling_5gram.pm), word::getString (languagemodeling_5gram.pm), word::containsNoun (languagemodeling_5gram.pm), and word::getArticles (LanguageModeling_cornetto.pm).
+  
+getAlternativeWordObjects (languagemodeling_5gram.pm) 
+  Takes a word object and its part-of-speech as input. Generates different alternatives for the calling word object. Returns the paradigm of the word. Uses word::getParadigm (languagemodeling_5gram.pm).
+  
+getArticles (LanguageModeling_cornetto.pm)
+  Takes a word object as input. Returns matching articles for the calling word object.
+
+getNegativeWord(simplifybackup.pm)
+  Activated when Alpino is disabled or fails. Generates a word object for a negation.
+
+getNumber (picto_cornetto.pm)
+  Takes a word object as input. Returns 1 of the calling word object is singular and 2 if it is plural.
+
+getParadigm (languagemodeling_5gram.pm)
+  Takes a word object and its part-of-speech as input. Activates a reverse lemmatiser, which generates a paradigm for the calling word object. Returns an array of possible alternatives.
+
+getPictoAsDependents (picto.pm)
+  Returns the pictos under the {picto_asdependent} feature of the calling word.
+
+getPictoComplexes (picto.pm)
+  Returns the pictos under the {picto_complex} feature of the calling word.
+
+getPictoSingle (picto.pm)
+  Returns the pictos under the {picto_single} feature of the calling word.
+  
+getString (languagemodeling_5gram.pm)
+  Converts alternatives into a string.
+
+getSynsets (synset.pm)
+  Gets the synset for each of the lexunits of the object. Returns an array.
+
+isContentWord (picto_cornetto.pm)
+  Checks whether the word is a content word. If the filename of the word exists, the word is by definition a content word. Returns 1 or "undefined". Uses word::lookupFilename (picto.pm).
+
+isNegative (simplifybackup.pm)
+  Activated when Alpino is disabled or fails. Checks whether the calling word object is a negative. Returns 1 or "undefined".
+
+isNeuter (LanguageModeling_cornetto.pm)
+  Checks whether the calling word object is a neuter. Returns 1 or "undefined".
+
+isNonNeuter (LanguageModeling_cornetto.pm)
+  Checks whether the calling word object is a non-neuter. Returns 1 or "undefined".
+
+isNoun (LanguageModeling_cornetto.pm)
+  Checks whether the calling word object is a noun. Returns 1 or "undefined".
+  
+isPlural (LanguageModeling_cornetto.pm)
+  Checks whether the calling word object is a plural. Returns 1 or "undefined".
+
+lemmatize (simplifybackup.pm)
+  Activated when Alpino is disabled or fails. Lemmatises a tagged word. Uses a list to lemmatise the word, based on the token and the POS. Uses word::lemmatize_rules (simplifybackup.pm).
+
+lemmatize_rules (simplifybackup.pm)
+  Activated when Alpino is disabled or fails. Lemmatises a tagged word. Uses a set of rules to lemmatise the word, based on the token and the POS. 
+
+lemmatizeAssociations (WordAssociationPredictor.pl)
+  Lemmatises the associations that were retrieved by the semantic association tool for single or head synsets.
+
+lemmatizeDepAssociations (WordAssociationPredictor.pl)
+  Lemmatises the associations that were retrieved by the semantic association tool for dependent synsets.
+
+lookupFilename (picto.pm)
+  Looks up whether picto token + picture extension exists. If this is the case, add a picto object with the filename of the lemma to the {picto_single} feature of the calling word. Returns 1 or "undefined". Uses beta/sclera::getPictoDirs (beta.pm and sclera.pm) and object::pushFeature (object.pm).
+
+lookupInDictionary (spellCorrector_cornetto.pl)
+  Checks if a token occurs in the lexicon. Adds a value to the {spellcheck} feature.
+
+lookupPictoDictionary (picto_cornetto.pm)
+  Prepares the queries for word::lookupPictoDictionaryTokLemTag (picto.pm). Returns 1 or "undefined" if no picto is found.
+
+lookupPictoDictionaryTokLemTag (picto.pm).
+  Looks up the word in the picto dictionary and adds the picto object to the {picto_single} attribute. Returns 1 or "undefined" if no picto is found. Uses DBI::db::lookup (Database.pm).
+
+makeDependentList (WordAssociationPredictor.pl)
+  Creates a list of lemmas associated with a given dependent synset.
+
+makeLemmaList (WordAssociationPredictor.pl)
+  Creates a list of lemmas associated with a given single or head synset.
+
+retrieveLemmas (WordAssociationPredictor.pl)
+  Retrieves all lemmas from a pictograph. Uses word::makeLemmaList (WordAssociationPredictor.pl), word::makeDependentList (WordAssociationPredictor.pl), word::checkDictionary (WordAssociationPredictor.pl), and word::checkPronouns (WordAssociationPredictor.pl).
+
+wordSplitter (spellCorrector_cornetto.pl)
+  Splits a non-word if its separate parts each form a real word with a minimum frequency.
+
+==================================================================================
+5. lexunit 
+ISA("object")
+==================================================================================
+
+addLemma (synset.pm)
+  Given the id in the lexunit object, retrieves the lemma from the WordNet database, and returns it.
+
+addPicto (picto.pm)
+  Adds the pictos to the synsets of the calling lexunit under the three features {picto_single}, {picto_complex}, and {picto_asdependent}. If the calling lexunit does not have a synset, returns "undefined".
+  
+addSynset (synset.pm)
+  Adds the synset to a lexical unit. Looks up the synset in the database and creates a new synset object. Uses synset::addPos (synset.pm).
+
+getAlternativeWordObjects (languagemodeling_5gram.pm) 
+  Generates different alternatives for the words in the calling lexunit. Returns the paradigm of the word. Uses word::getAlternativeWordObjects (languagemodeling_5gram.pm).
+   
+getLemma (synset.pm)
+  Given the id in the lexunit object, retrieves the lemma from the WordNet database, and returns it. Uses lexunit::addLemma (synset.pm).
+
+getPictoComplexes (picto.pm)
+  Returns the pictos under the {picto_complex} feature of the calling lexunit.
+
+getPictoSingle (picto.pm)
+  Returns the pictos under the {picto_single} feature of the calling lexunit.
+
+==================================================================================
+6. synset 
+ISA("object")
+==================================================================================
+
+addAntonyms (synset.pm)
+  Looks up the NEAR_ANTONYMs of the synset and adds them to the {antonyms} feature. Returns "undefined" if no antonyms are found. Uses DBI::db::lookup (Database.pm).
+  
+addHyperonyms (synset.pm)
+  Looks up the hyperonyms of the synset and adds them to the {hyperonyms} feature. Returns "undefined" if no hyperonyms are found. Uses DBI::db::lookup (Database.pm).
+  
+addHyponyms (synset.pm)
+  Looks up the hyponyms of the synset and adds them to the {hyponyms} feature. Returns "undefined" in no hyponyms are found. Uses DBI::db::lookup (Database.pm).
+
+addLemmas (synset.pm)
+  Adds the lemma to each of the lexunits of the synset. If lexunits are not yet added, synset::addLexUnits (synset.pm) is called first, and lexunit::addLemma (synset.pm) is called on each of these lexunits. Returns an array of lemmas.
+  
+addLexUnits (synset.pm)
+  Looks up the lexunits belonging to the synset. Uses DBI::db::lookup (Database.pm).
+       
+addPicto (picto.pm)
+  Adds the picto items that match the synset (single, complex, and as dependent). Uses synset::addPictoTypes (picto.pm) and synset::addPictoToRelations (picto.pm).
+
+addPictoAsDependent (picto.pm)
+  Takes a penalty as input. Adds the picto for which the calling synset is a dependent. Uses DBI::db::lookup (Database.pm) and beta/sclera::getExtension (beta.pm and sclera.pm).
+  
+addPictoComplex (picto.pm)
+  Takes a penalty as input. Adds the complex pictos to the calling synset. Uses DBI::db::lookup (Database.pm) and beta/sclera::getExtension (beta.pm and sclera.pm).
+ 
+addPictoSingle (picto.pm)
+  Takes a penalty as input. Adds the single pictos to the calling synset. Uses DBI::db::lookup (Database.pm), beta/sclera::getExtension (beta.pm and sclera.pm), beta/sclera::getPictoDirs (beta.pm and sclera.pm), and beta/sclera::negativePicto (beta.pm and sclera.pm).
+ 
+addPictoToRelations (picto.pm)
+  Takes types and penalty as input. Adds the relations and the pictograms to these relations. Uses synset::addRelations (picto.pm) and synset::addPicto (picto.pm).
+       
+addPictoTypes (picto.pm)
+  Takes as input a reference to an array of types (single, complex, and as dependent) and a penalty. Adds the picto items according to the type that matches the synset. Uses synset::addPictoSingle (picto.pm), synset::addPictoComplex (picto.pm), and synset::addPictoAsDependent (picto.pm).
+  
+addPos (synset.pm)
+  Looks up "posspecific" in WordNet database. Uses DBI::db::lookup (Database.pm).
+
+addRelations (picto.pm)
+  Adds the relations. Uses synset::addXPosNearSynonyms (synset.pm) and synset::addHyperonyms (synset.pm).
+     
+addXPosNearSynonyms (synset.pm)
+  Looks up the XPosNearSynonyms of the synset and adds them to the {xposnearsynonyms} feature. Returns "undefined" if no hyperonyms are found. Uses DBI::db::lookup (Database.pm).
+
+equal (picto.pm)
+  Takes a synset as input. Checks whether synset and calling synset have the same id. Returns 1 or "undefined".
+  
+getAlternativeWordObjects (languagemodeling_5gram.pm) 
+  Generates different alternatives for the words in the calling synset. Returns the paradigm of the word. Uses word::getAlternativeWordObjects (languagemodeling_5gram.pm).
+  
+getLemmas (synset.pm)
+  Given the id in the lexunit object, retrieves the lemma from the WordNet database, and returns it. Uses lexunit::getlemma (synset.pm).
+
+occursInLexunit (picto.pm)
+  Looks up whether the calling synset occurs in the lexical unit. Uses synset::occursInSynset (picto.pm). Returns 1 or "undefined".
+  
+occursInSynset (picto.pm)
+  Takes a synset as input. If the synset and the calling synset are equal, returns 1. Else calls recursively for the hyperonyms of the calling synset. Uses synset::occursInSynset (picto.pm)
+  
+occursInWord (picto.pm)
+  Takes a word object as input. Looks up whether the synset occurs in the word. Returns 1 or "undefined".
+  
+occursInWords (picto.pm)
+  Takes as argument a reference to an array of word objects. Looks up whether the synset occurs in the array of words. Returns 1 or "undefined".
+  
+==================================================================================
+7. picto
+ISA("object")
+==================================================================================
+
+adaptToPolarity (picto.pm)
+  Requires a pictopath as input. In case of negative polarity, adds a negation picto to the pictopath. Uses beta/sclera::negativePicto (beta.pm and sclera.pm).
+
+addSynsets (languagemodeling_5gram.pm) 
+  Adds the synsets to the object. Uses DBI::db::lookup (Database.pm), synset::addLemmas (synset.pm), synset::addPos (synset.pm), and object::pushFeature (object.pm). 
+  
+allDepsOccur (picto.pm)
+  Takes a reference to an array of words as input (containing the words that still need to be processed). Checks whether all the dependents from the picto occur in the array. Returns 1 or "undefined". Uses synset::occursInWords (picto.pm).
+  
+checkInDictionary (languagemodeling_5gram.pm)
+  Takes a picto object as input. Checks whether the pictograph occurs in the dictionary. Uses beta/sclera::getDictionaryTableName (beta/sclera.pm), DBI::db::lookup (Database.pm), and word::getAlternativeWordObjects (languagemodeling_5gram.pm).
+
+checkInPronouns (LanguageModeling_cornetto.pm)
+  Takes a picto object as input. Checks whether the pictograph occurs in the list of pronouns. 
+
+existNegative (picto.pm)
+  Checks whether there exists an antonym of the calling picto in the database. Adapts the picto if this is the case. Returns 1 or "undefined". Uses DBI::db::lookup (Database.pm) and beta/sclera::getExtension (beta.pm and sclera.pm).
+  
+getAlternativeWordObjects (languagemodeling_5gram.pm) 
+  Generates different alternatives for the words in the calling picto. Returns the paradigm of the word. Uses synset::getAlternativeWordObjects (languagemodeling_5gram.pm) and word::getAlternativeWordObjects (languagemodeling_5gram.pm).
+  
+headOccurs (picto.pm)
+  Takes a reference to an array of words as input (words to process). Checks whether the head of the calling picto occurs in any of the words. Returns 1 or "undefined". Uses synset::occursInWords (picto.pm).
+
+replaceSynset (picto.pm)
+  Takes a from-synset and a to-synset as input arguments. Finds and replaces synsets in the calling picto.
+
+==================================================================================
+8. beta
+ISA("picto")
+==================================================================================
+
+getDictionaryTableName (beta.pm)
+  Gets to the table in the WordNet database which contains dictionary info for Beta.
+ 
+getExtension (beta.pm)
+  Sets the filename extension for the pictos.
+  
+getPictoDirs (beta.pm)
+  Gets the path to the directory containing the pictographs.
+
+getPronouns (beta_cornetto.pm)
+  Takes a part-of-speech tagged pronoun as input and returns the appropriate Beta pronoun pictograph.
+  
+getURL (beta.pm)
+  Sets the URL for the pictographs (used in HTML output mode).
+
+negativePicto (beta.pm)
+  Contains the pictograph filename for negation.
+
+==================================================================================
+9. sclera
+ISA("picto")
+==================================================================================
+
+getDictionaryTableName (sclera.pm)
+  Gets to the table in the WordNet database which contains dictionary info for Sclera.
+  
+getExtension (sclera.pm)
+  Sets the filename extension for the pictos.
+  
+getPictoDirs (sclera.pm)
+  Gets the path to the directory containing the pictographs.
+
+getPronouns (sclera_cornetto.pm)
+  Takes a part-of-speech tagged pronoun as input and returns the appropriate Sclera pronoun pictograph.
+  
+getURL (sclera.pm)
+  Sets the URL for the pictographs (used in HTML output mode).
+
+negativePicto (sclera.pm)
+  Contains the pictograph filename for negation.
+
+==================================================================================
+8. pictopath
+ISA("object")
+==================================================================================
+
+clone (picto.pm)
+  Clones the path and the array, but not the objects inside the arrays.
+  
+containsAllInfo (picto.pm)
+  Checks whether {wordstoprocess} feature list is empty. Returns 1 or "undefined".
+  
+extend (picto.pm)
+  Expands the current path by looking for pictos in the next {wordtoprocess}. Returns array of new paths. Uses word::getPictoComplexes (picto.pm), picto::allDepsOccur (picto.pm), pictopath::extendWithPicto (picto.pm), pictopath::spliceWordWithDep (picto.pm), object::spliceFromArray (object.pm), word::getPictoAsDependents (picto.pm), picto::headOccurs (picto.pm), pictopath::spliceWordWithHead (picto.pm), and pictopath:extendNoPicto (picto.pm).
+  
+extendNoPicto (picto.pm)
+  Takes a word object as input. Extends the path when no picto is found, creating a text object containing the input token. Checks if the input word has a {polarity} value. If this is the case, the negative picto is pushed in the {display} feature. Returns the new path. Uses pictopath::clone (picto.pm) and object::pushFeature (object.pm).
+  
+extendWithPicto (picto.pm)
+  Takes the word and the picto as input. Returns a new path, which is a clone of the calling path, extending the {display} feature with the display of the picto, and extending the {words} feature with the word from the input arguments. Checks whether to adapt the polarity of picto. Uses picto::adaptToPolarity (picto.pm), pictopath::clone (picto.pm), and object::pushFeature (object.pm).
+
+spliceWordWithDep (picto.pm)
+  Takes a picto object as input. Splices the word containing the synset of the picto dependents from the {wordstoprocess} feature of the calling pictopath. Uses synset::occursInWords (picto.pm) and object::pushFeature (object.pm).
+  
+spliceWordWithHead (picto.pm)
+  Takes a picto object as input. Splices the word containing the synset of the picto head from the {wordstoprocess} feature of the calling pictopath. Uses synset::occursInWords (picto.pm) and object::pushFeature (object.pm).
+  
+stringify (picto.pm)
+  Takes all the displays and returns the contents. Uses image::getContent (picto.pm).
+  
+weight (picto.pm)
+  Calculates and returns the weight. Weight = number of words to process + sum of pathlengths of the pictos in the {display} feature.
+  
+==================================================================================
+9. sentencePath
+ISA("object")
+==================================================================================
+
+containsAllInfo (languagemodeling_5gram.pm)
+  Checks whether {toprocess} feature list is empty. Returns 1 or "undefined".
+
+cost (languagemodeling_5gram.pm)
+  Takes a sentence path as input. Returns the cost of the sentence path.
+  
+extend (languagemodeling_5gram.pm)
+  Expands the current path by looking for words in the next {toprocess}. Returns array of new paths. Uses ngram::estimateProb (languagemodeling_5gram.pm).
+  
+hypothesisSolved (languagemodeling_5gram.pm)
+  Takes a sentence path as input. Pushes the hypothesis into the {processed} feature. Uses object::pushFeature (object.pm).
+
+printOutput (LanguageModeling_cornetto.pm)
+  Prints the winning hypothesis.
+
+==================================================================================
+10. ngram
+ISA("object")
+==================================================================================
+
+estimateProb (languagemodeling_5gram.pm)
+  Estimates the probability using Katz backoff. Uses unigram::estimateProb (languagemodeling_5gram.pm), bigram::estimateProb (languagemodeling_5gram.pm), trigram::estimateProb (languagemodeling_5gram.pm), fourgram::estimateProb (languagemodeling_5gram.pm), and fivegram::estimateProb (languagemodeling_5gram.pm).
+
+==================================================================================
+11. fivegram
+ISA("ngram")
+==================================================================================
+
+estimateProb (languagemodeling_5gram.pm)
+  Estimates the probability using Katz backoff. Uses DBI::db::lookup (Database.pm).
+
+==================================================================================
+12. fourgram
+ISA("ngram")
+==================================================================================
+
+estimateProb (languagemodeling_5gram.pm)
+  Estimates the probability using Katz backoff. Uses DBI::db::lookup (Database.pm).
+
+getAlfa (languagemodeling_5gram.pm)
+  Estimates the backoff probability mass (alfa). Uses DBI::db::lookup (Database.pm).
+
+==================================================================================
+13. trigram
+ISA("ngram")
+==================================================================================
+
+estimateProb (languagemodeling_5gram.pm)
+  Estimates the probability using Katz backoff. Uses DBI::db::lookup (Database.pm). 
+
+getAlfa (languagemodeling_5gram.pm)
+  Estimates the backoff probability mass (alfa). Uses DBI::db::lookup (Database.pm).
+
+==================================================================================
+14. bigram
+ISA("ngram")
+==================================================================================
+
+estimateProb (languagemodeling_5gram.pm)
+  Estimates the probability using Katz backoff. Uses DBI::db::lookup (Database.pm).
+
+getAlfa (languagemodeling_5gram.pm)
+  Estimates the backoff probability mass (alfa). Uses DBI::db::lookup (Database.pm).
+  
+==================================================================================
+15. unigram
+ISA("ngram")
+==================================================================================
+
+estimateProb (languagemodeling_5gram.pm)
+  Estimates the probability using Katz backoff. Uses DBI::db::lookup (Database.pm).
+
+getAlfa (languagemodeling_5gram.pm)
+  Estimates the backoff probability mass (alfa). Uses DBI::db::lookup (Database.pm).
+
+==================================================================================
+16. DBI::db
+==================================================================================
+
+close (Database.pm)
+  Closes the connection to the postgres database.
+  
+execute (Database.pm)
+  Checks whether an SQL statement can be executed. Returns 1 or "undefined".
+  
+lookup (Database.pm)
+  Looks up an SQL statement in the postgres database. Uses DBI::db::execute (Database.pm).  
+  
+new (Database.pm)
+  Takes database name, host, port, user, and password as input. Connects to the postgres database.
+
+==================================================================================
+17. display
+ISA("object")
+==================================================================================
+
+==================================================================================
+18. image
+ISA("display")
+==================================================================================
+
+getContent (picto.pm)
+  Displays the picto files.
+
+==================================================================================
+19. text
+ISA("display")
+==================================================================================
+
+getContent (picto.pm)
+  Displays the labels of the picto files.
+
+==================================================================================
+20. phrase
+ISA("object")
+==================================================================================
+

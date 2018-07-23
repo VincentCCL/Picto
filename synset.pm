@@ -43,16 +43,6 @@ sub addSynsets {
     foreach (@$sentences) {
 	$_->{wordnetdb}=$pkg->{wordnetdb};
 	$_->addSynsets;
-	$chunks=$_->{chunks};
-	foreach $chunk (@$chunks) {
-		if(($chunk->{label} eq "RELP") || ($chunk->{label} eq "SSUB") || ($chunk->{label} eq "OTI")) { 
-			$chunk->{wordnetdb}=$pkg->{wordnetdb};
-			$chunk->addSynsets;
-	    	}
-		else{
-			next;
-		}
-	}
     }
 }
 

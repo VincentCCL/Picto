@@ -7,7 +7,7 @@
 #---------------------------------------
 
 # N-gram based prediction tool
-# Example: NGramPredictor.pl -p beta 'ik zijn_ww blij'
+# Example: perl NGramPredictor.pl -p beta 'ik zijn_ww blij'
 
 #---------------------------------------
 

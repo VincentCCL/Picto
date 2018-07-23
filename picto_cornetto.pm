@@ -84,7 +84,7 @@ sub isContentWord {
 	return undef;
     }
 }
-sub addPictosNotInCornetto {
+sub addPictosNotInWordnet {
     my ($pkg)=@_;
     my ($file,$feat,$picto);
     my ($persbez,$person,$number,$gender);

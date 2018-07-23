@@ -242,7 +242,7 @@ $message=message->new(text,$in,
 $message->taglemmatize; # Improvement 2: Syntactic simplification and temporality detection
 `rm -rf $Bin/../AlpinoOutputDirectory$timestamp`;
 $message->addSynsets;
-$message->cornettowsd; # Improvement #3: Word sense disambiguation
+$message->CornettoWsd; # Improvement #3: Word sense disambiguation
 $message->addPictoPaths($targetlanguage);
 
 #---------------------------------------
@@ -259,7 +259,7 @@ elsif ($outputmode eq 'json') {
     $message->JSONOut; # Generates JSON
 }
 elsif ($outputmode eq 'paralleljson') {
-    $message->ParallelJSON; # Generates JSON with parallel text
+    $message->ParallelJSONOut; # Generates JSON with parallel text
 }
 else {
     print STDERR "Invalid outputmode, generating text anyway\n";

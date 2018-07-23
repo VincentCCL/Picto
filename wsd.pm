@@ -31,11 +31,11 @@ package message;
 
 my $stamp=time.$main::sessionid;
 
-sub cornettowsd {
+sub CornettoWsd {
     my ($pkg)=@_;
     $pkg->createNewTextAndLabelObjects;
     if($main::wsdoption eq "on"){
-	    $pkg->generateInputFile;
+	    $pkg->generateWsdInputFile;
 	    $pkg->useWsdTool;
 	    $pkg->convertWsd;
 	    $pkg->addWsdScores;	
@@ -67,7 +67,7 @@ sub createNewTextAndLabelObjects {
 $pkg->{newtext}="@arrayofsentences"; 
 }
 
-sub generateInputFile{ 
+sub generateWsdInputFile{ 
     my ($pkg)=@_;
     my $message=$pkg->{newtext};
     my $pictolanguage=$main::targetlanguage;

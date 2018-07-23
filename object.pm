@@ -58,37 +58,6 @@ sub new {
     return bless {%hash},$pkg;
 }
 
-sub inArray {
-    my ($pkg,$array)=@_;
-    foreach (@$array) {
-	if ($pkg == $_) {
-	    return 1;
-	}
-    }
-    return undef;
-}
-
-sub inArrayEqual {
-    my ($pkg,$array)=@_;
-    foreach (@$array) {
-	if ($pkg->equals($_)) {
-	    return 1;
-	}
-    }
-    return undef;
-}
-
-sub spliceFromArray {
-    my ($pkg,$array)=@_;
-    for (my $i=0;$i<@$array;$i++) {
-	if ($array->[$i] eq $pkg) {
-	    splice(@$array,$i,1);
-	    return 1;
-	}
-    }
-    return undef;
-}
-
 sub pushFeature {
     my ($pkg,$feature,$value)=@_;
     if ($value) {
@@ -101,135 +70,11 @@ sub pushFeature {
     }
 }
 
-sub Space {
-    my ($level)=@_;
-    my $distance=2;
-    my ($space,$spacedistance);
-    for ($i=0;$i<$distance;$i++) {
-	$spacedistance.=" ";
-    }
-    for ($i=0;$i<$level;$i++) {
-	$space.=$spacedistance;
-    }
-    return $space;
-}
-
-sub equals {
-    my ($pkg,$el)=@_;
-    if ($pkg eq $el) {
-	return 1;
-    }
-    elsif (ref($pkg) eq ref($el)) {
-	my @keys=keys %$pkg;
-	my @keysel=keys %$el;
-	if (@keys ne @keysel) {
-	    return undef;
-	}
-	foreach (@keys) {
-	    if (ref($pkg->{$_}) eq '') {
-		unless ($pkg->{$_} eq $el->{$_}) {
-		    return undef;
-		}
-	    }
-	    elsif (ref($pkg->{$_}) eq 'ARRAY') {
-		my $pkgarray=$pkg->{$_};
-		my $elarray=$el->{$_};
-		for (my $i=0;$i<@$pkgarray;$i++) {
-		    if (ref($pkgarray->[$i]) eq '') {
-			unless ($pkgarray->[$i] eq $elarray->[$i]) {
-			    return undef;
-			}
-		    }
-		    else {
-			unless ($pkgarray->[$i]->equals($elarray->[$i])) {
-			    return undef;
-			}
-		    }
-		}
-	    }
-	    else {
-		if ($pkg->{$_} eq $el->{$_}) {
-		    next;
-		}
-		else {
-		    unless ($pkg->{$_}->equals($el->{$_})) {
-			return undef;
-		    }
-		}
-	    }
-	}
-	return 1;
-    }
-    else {
-	return undef;
-    }
-}
-
-sub clone {
-    my ($pkg)=@_;
-    my $clone=ref($pkg)->new;
-    my @keys=keys %$pkg;
-    my ($subclone,@clonevalue,$el);
-    foreach (@keys) {
-	my $value=$pkg->{$_};
-	if (ref($value) eq '') {
-	    $subclone=$value
-	}
-	elsif (ref($value) eq 'HASH') {
-	    $subclone={%$value};
-	}
-	elsif (ref($value) eq 'ARRAY') {
-	    foreach $el (@$value) {
-		if (ref($el) eq '') {
-		    push(@clonevalue,$el);
-		}
-		elsif (ref($el) eq 'ARRAY') {
-		    die "ARRAYS of ARRAYS are not allowed !\n"
-		}
-		elsif ($el->can("clone")) {
-		    push(@clonevalue,$el->clone);
-		}
-		else {
-		    die "cloning not defined under this condition";
-		}
-	    }
-	    $subclone=[@clonevalue];
-	    @clonevalue=();
-	}
-	elsif ($value->isa("object")) {
-	    $subclone=$value->clone;
-	}
-	else {
-	    $subclone=$value;
-	}
-	$clone->{$_}=$subclone;
-    }
-    return $clone;
-}
-
 #---------------------------------------
 package message;
 #---------------------------------------
 
 @ISA=("object");
-sub csvOut {
-    my ($pkg)=@_;
-    my $sentences=$pkg->{sentences};
-    foreach (@$sentences) {
-	$sentid++;
-	print "<s id=\"$sentid\">\n";
-	$_->csvOut;
-	print "</s>\n";
-    }
-}
-
-sub spellCheck {
-    my ($pkg,$param)=@_;
-    my $words=$pkg->{words};
-    foreach (@$words) {
-	$_->spellCheck($param);
-    }
-}
 
 sub addFullStop {
     my ($pkg)=@_;
@@ -295,25 +140,11 @@ sub tokenize {
     $pkg->{words}=[@words];
 }
 
-#---------------------------------------------
-package clause;
-#---------------------------------------------
-
-@ISA=('sentence');
-
 #---------------------------------------
 package sentence;
 #---------------------------------------
 
 @ISA=('object');
-
-sub csvOut {
-    my ($pkg)=@_;
-    my $words=$pkg->{words};
-    foreach (@$words) {
-	$_->csvOut;
-    }
-}
 
 sub lemmatize {
     my ($pkg)=@_;
@@ -331,14 +162,6 @@ package word;
 #---------------------------------------------
 
 @ISA=('object');
-
-sub csvOut {
-    my ($pkg)=@_;
-    my $token=$pkg->{token};
-    my $tag=$pkg->{tag};
-    my $lemma=$pkg->{lemma};
-    print "$token\t$tag\t$lemma\n";
-}
 
 sub findSpellingAlternatives {
     my ($pkg)=@_;

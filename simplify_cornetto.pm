@@ -139,8 +139,7 @@ sub createInputFileForAlpino {
 	 my ($match,$groet)=$message=~/(\s(groetjes|groeten|doei|daag|daaag|bye|ciao).*)$/;
          $message=~s/($match)/\ngroetjes/g;
     }
-    $message=~s/([\.\?!:;]+) /$groet/g;
-    $message=~s/([\.\?!:;]+)/$groet\n/g;
+    $message=~s/([\.\?!:;]+)/ $1\n/g;
     $message=~s/:/\./g;
     print ALPINOINPUT $message;
     chomp $message;
@@ -204,7 +203,7 @@ sub addSyntaxInfo {
 			else{
 				if($mainclause->prev_sibling){ # There are some special types of main sentences, for which we will have to retain some extra information
 					if($mainclause->prev_sibling->{'att'}->{'rel'} eq "whd"){ # First case: the sentence could be introduced by a question word
-						my $sentence_object=buildQuestionSentence($mainclause);
+						my $sentence_object=buildInterrogativeSentence($mainclause);
 						push(@allsentences,$sentence_object);				
 					}
 					else{ # Second case: the sentence could be missing its subject (conjunction with ellipsis)
@@ -239,7 +238,7 @@ sub addSyntaxInfo {
 							push(@allsentences,$subsentence_object);
 						}
 						elsif($parentclause->prev_sibling->{'att'}->{'rel'} eq "whd") { 
-							my $subsentence_object=buildQuestionSentence($clause); # Second case: the clause could be introduced by a question word
+							my $subsentence_object=buildInterrogativeSentence($clause); # Second case: the clause could be introduced by a question word
 							push(@allsentences,$subsentence_object);				
 						}
 						elsif($clause->{'att'}->{'cat'} eq "ti"){
@@ -281,7 +280,7 @@ sub addSyntaxInfo {
 				elsif ($mainclause->descendants("node[\@cat=\"whsub\"]")){ # WHSUB without SSUB (Ex. "Maar wat dan met de doelstelling voor hernieuwbare energie?")
 					@clauses=$mainclause->descendants("node[\@cat=\"whsub\"]"); 	
 					foreach $clause(@clauses){
-						my $subsentence_object=buildQuestionSentence($clause);
+						my $subsentence_object=buildInterrogativeSentence($clause);
 						push(@allsentences,$subsentence_object);	
 					}								
 				}
@@ -306,12 +305,12 @@ sub addSyntaxInfo {
    return $pkg;
 }
 
-sub buildQuestionSentence{
+sub buildInterrogativeSentence{
 	my ($mainclause)=@_;
 	my @syntax;
 	my $sentence_object=sentence->new(type,"question"); 	
 	$sentence_object->{questionword}=fetchQuestionWord($mainclause); # Find the question word
-	@syntax=buildSyntacticClauseObjects($mainclause); 
+	@syntax=buildWordObjects($mainclause); 
 	$sentence_object->{syntax}=[@syntax];
 	return $sentence_object;
 }
@@ -334,7 +333,7 @@ sub buildMainSentenceWithSubjectCheck{
 	my ($mainclause,$root)=@_;
 	my @syntax;
 	my $sentence_object=sentence->new(type,"main"); 
-	@syntax=buildSyntacticClauseObjects($mainclause);
+	@syntax=buildWordObjects($mainclause);
 	$sentence_object->{syntax}=[@syntax];
 	my $allsyntaxobjects=$sentence_object->{syntax};
 	my $index;	
@@ -374,7 +373,7 @@ sub buildMainSentence{
 	my ($mainclause)=@_;
 	my @syntax;
 	my $sentence_object=sentence->new(type,"main");			
-	@syntax=buildSyntacticClauseObjects($mainclause); 
+	@syntax=buildWordObjects($mainclause); 
 	$sentence_object->{syntax}=[@syntax];
 	return $sentence_object;
 }
@@ -398,7 +397,7 @@ sub buildRelSentence{
 	$subsentence_object->{type}="rel";
 	$subsentence_object->{functionofantecedent}=$syntacticfunction;
 	$subsentence_object->{antecedent}=fetchAntecedent($clause); # We will retain the antecedent of the RELP and its function (subject, obj1, obj2)
-	@syntax=buildSyntacticClauseObjects($clause); 
+	@syntax=buildWordObjects($clause); 
 	$subsentence_object->{syntax}=[@syntax];
 	return $subsentence_object;
 }
@@ -442,7 +441,7 @@ sub buildOTISentence{
 	my ($clause,$mainclause)=@_;
 	my @syntax;
 	my $subsentence_object=sentence->new(type,"oti"); 
-	@syntax=buildSyntacticClauseObjects($clause);
+	@syntax=buildWordObjects($clause);
 	$subsentence_object->{syntax}=[@syntax];
 	my @clausedescendants;
 	my @referees;
@@ -504,7 +503,7 @@ sub buildSSUBSentence{
  	my $subsentence_object=sentence->new; 
 	my $type=$clause->{'att'}->{'cat'}; # Regular SSUB
 	$subsentence_object->{type}="ssub";
-	@syntax=buildSyntacticClauseObjects($clause);
+	@syntax=buildWordObjects($clause);
 	$subsentence_object->{syntax}=[@syntax];
 	my $allsyntaxobjects=$subsentence_object->{syntax};
 	my $index;	
@@ -545,7 +544,7 @@ sub buildAppSentence{
  	my $subsentence_object=sentence->new; 
 	$subsentence_object->{type}="app";
 	$subsentence_object->{antecedent}=fetchAppositionAntecedent($clause); # Antecedent search for apposition
-	@syntax=buildSyntacticClauseObjects($clause); 
+	@syntax=buildWordObjects($clause); 
 	$subsentence_object->{syntax}=[@syntax];
 	return $subsentence_object;
 }
@@ -607,12 +606,12 @@ sub buildPPRESSentence{
 				  transitivity,$head->{'att'}->{'sc'},
 				  function,$head->{'att'}->{'rel'});
 	$subsentence_object->{antecedent}=$head_object;		
-	@syntax=buildSyntacticClauseObjects($clause); 
+	@syntax=buildWordObjects($clause); 
 	$subsentence_object->{syntax}=[@syntax];
 	return $subsentence_object;
 }
 
-sub buildSyntacticClauseObjects{ # There are both words (terminals) and phrases (non-terminals), in which case a recursive function will be called
+sub buildWordObjects{ # There are both words (terminals) and phrases (non-terminals), in which case a recursive function will be called
    my ($clause)=@_;
    my @syntax;
    if($clause->children){
@@ -657,7 +656,7 @@ sub buildSyntacticClauseObjects{ # There are both words (terminals) and phrases 
 						$flag;
 					}
 					else{
-						push(@phrasearray,buildSyntacticPhraseObjects($childofchild)); # Apply the recursive function until all words are found
+						push(@phrasearray,buildPhraseObjects($childofchild)); # Apply the recursive function until all words are found
 					}
 				}
 				$phrase_object->{syntax}=[@phrasearray];
@@ -688,7 +687,7 @@ sub buildSyntacticClauseObjects{ # There are both words (terminals) and phrases 
 	}
 }
 
-sub buildSyntacticPhraseObjects{
+sub buildPhraseObjects{
    my ($child)=@_;
    my @syntax;
    my @phrasearray;
@@ -730,7 +729,7 @@ sub buildSyntacticPhraseObjects{
 					$flag;
 				}
 				else{
-					push(@phrasearray,buildSyntacticPhraseObjects($childofchild));
+					push(@phrasearray,buildPhraseObjects($childofchild));
 				}
 		}
 		$phrase_object->{syntax}=[@phrasearray];
@@ -967,10 +966,10 @@ sub changeOrder{
 		$pkg->moveRelSubjectVerbs; # In these situations, the subject must be moved to the first position
 	}
         elsif($pkg->{type} eq "app"){
-		$pkg->createAppositionSentences; # In appositions, we add the antecedent and "to be" to the front
+		$pkg->createAppositiveSentences; # In appositions, we add the antecedent and "to be" to the front
 	}
 	elsif(($pkg->{type} eq "question") || ($pkg->{type} eq "sv1")){
-		$pkg->moveQuestionVerbs; # In these situations, move the verbs behind the question word and the subject (question word - SVO)
+		$pkg->moveInterrogativeVerbs; # In these situations, move the verbs behind the question word and the subject (question word - SVO)
 	}
 	if($pkg->{mode} eq "passive"){
 		$pkg->makeActive; # Make passive sentences active when "door" is found
@@ -1083,13 +1082,13 @@ sub moveRelSubjectVerbs{
 	$pkg->addSubjectToFront;
 }
 
-sub createAppositionSentences{
+sub createAppositiveSentences{
 	my ($pkg)=@_;
 	$pkg->addToBeInFront;
 	$pkg->addSubjectToFront;
 }
 
-sub moveQuestionVerbs{
+sub moveInterrogativeVerbs{
 	my ($pkg)=@_; 
 	$pkg->moveAllVerbsBehindSubject;
 	$pkg->addQuestionWordToFront;

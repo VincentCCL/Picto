@@ -7,7 +7,7 @@
 #---------------------------------------
 
 # Semantic associations based prediction tool
-# Example: WordAssociationPredictor.pl -p beta 'ik zijn_ww blij'
+# Example: perl WordAssociationPredictor.pl -p beta 'ik zijn_ww blij'
 
 #---------------------------------------
 

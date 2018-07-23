@@ -110,17 +110,6 @@ sub adaptToPolarity {
     }
 }
 
-sub containsDep {
-    my ($pkg,$dep)=@_;
-    my $pictodep=$pkg->{dep};
-    if ($dep->inArrayEqual($pictodep)) {
-	return 1;
-    }
-    else {
-	return undef;
-    }
-}
-
 sub headOccurs {
     my ($pkg,$wtp)=@_;
     my $head=$pkg->{head};
@@ -376,15 +365,6 @@ sub TextOut {
     my $sentences=$pkg->{sentences};
     foreach (@$sentences) {
 	$_->TextOut;
-	$chunks=$_->{chunks};
-	foreach $chunk (@$chunks) {
-		if(($chunk->{label} eq "RELP") || ($chunk->{label} eq "SSUB") || ($chunk->{label} eq "OTI")) { 
-			$chunk->TextOut;
-	    	}
-		else{
-			next;
-		}
-	}
     }
 }
 
@@ -394,21 +374,12 @@ sub HTMLOut {
     my $sentences=$pkg->{sentences};
     foreach (@$sentences) {
 	$_->HTMLOut;
-	$chunks=$_->{chunks};
-	foreach $chunk (@$chunks) {
-		if(($chunk->{label} eq "RELP") || ($chunk->{label} eq "SSUB") || ($chunk->{label} eq "OTI")) { 
-			$chunk->HTMLOut;
-	    	}
-		else{
-			next;
-		}
-	}
 	print "<p>\n";
     }
     print "</html>\n";
 }	
 
-sub ParallelJSON {
+sub ParallelJSONOut {
     my ($pkg,$level)=@_;
     print "{ \n \"input\" :";
     my $text=$pkg->{text};
@@ -416,18 +387,8 @@ sub ParallelJSON {
     my $sentences=$pkg->{sentences};
     foreach (@$sentences) {
 	$_->ParallelOutOtherFile;
-	$chunks=$_->{chunks};
-	foreach $chunk (@$chunks) {
-		if(($chunk->{label} eq "RELP") || ($chunk->{label} eq "SSUB") || ($chunk->{label} eq "OTI")) { 
-			$chunk->ParallelOutOtherFile;
-	    	}
-		else{
-			next;
-		}
-	}
-	   $flag;
-           $_->ParallelJSONOut;
-           print "\"\\n\", ";
+        $_->ParallelJSONOut;
+        print "\"\\n\", ";
     }
     print "\"\\n\" ] \n}\n";
 }
@@ -467,15 +428,6 @@ sub searchArgMax {
     my $sentences=$pkg->{sentences};
     foreach (@$sentences) {
 	$_->searchArgMax;
-	$chunks=$_->{chunks};
-	foreach $chunk (@$chunks) {
-		if(($chunk->{label} eq "RELP") || ($chunk->{label} eq "SSUB") || ($chunk->{label} eq "OTI")) { 
-			$chunk->searchArgMax;
-	    	}
-		else{
-			next;
-		}
-	}
     }
 }
 
@@ -486,16 +438,6 @@ sub addPictos {
     foreach (@$sentences) {
 	$_->{wordnetdb}=$wordnet;
 	$_->addPictos;
-	$chunks=$_->{chunks};
-	foreach $chunk (@$chunks) {
-		if(($chunk->{label} eq "RELP") || ($chunk->{label} eq "SSUB") || ($chunk->{label} eq "OTI")) { 
-			$chunk->{wordnetdb}=$wordnet;
-			$chunk->addPictos;
-	    	}
-		else{
-			next;
-		}
-	}
     }
 }
 
@@ -514,7 +456,7 @@ sub addPictos {
     for (my $i=0;$i<@$words;$i++) {
 	$flag=undef;
 	$words->[$i]->{wordnetdb}=$wordnetdb;
-	unless ($words->[$i]->addPictosNotInCornetto) {
+	unless ($words->[$i]->addPictosNotInWordnet) {
 	    if ($words->[$i]->lookupPictoDictionary) {
 		$flag=1;
 	    };
@@ -861,18 +803,6 @@ sub lookupFilename {
     return undef;
 }
 
-
-sub containsDep {
-    my ($pkg,$dep)=@_;
-    my $lexunits=$pkg->{lexunits};
-    foreach (@$lexunits) {
-	if ($_->containsDep($dep)) {
-	    return 1;
-	}
-    }
-    return undef;
-}
-
 sub getPictoComplexes {
     my ($pkg)=@_;
     return $pkg->{picto_complex};
@@ -974,17 +904,6 @@ sub adaptToPolarity {
 #---------------------------------------
 package lexunit;
 #---------------------------------------
-
-sub containsDep {
-    my($pkg,$dep)=@_;
-    my $asdependent=$pkg->{picto_asdependent};
-    foreach (@$asdependent) {
-	if ($_->containsDep($dep)) {
-	    return 1;
-	}
-    }
-    return undef;
-}
 
 sub addPicto {
     my ($pkg,$singleornot)=@_;

@@ -233,7 +233,7 @@ our $timestamp=time.$main::sessionid;
 $in=shift(@ARGV);
 $in=decode("utf-8",$in);
 if ($spellcheckoption eq 'on') { # Improvement 1: Spelling correction 
-	$in=`perl SpellCorrector_$sourcelanguage.pl "$in"`;
+	$in=`perl $Bin/SpellCorrector_$sourcelanguage.pl "$in"`;
 	chomp $in;
 }
 $sessionid=shift(@ARGV);

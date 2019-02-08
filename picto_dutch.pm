@@ -7,14 +7,20 @@
 #---------------------------------------
 
 1;
-$VERSION="1.4"; # 26.09.2014 Removed lookup filename in isContentWord
+$VERSION="1.6"; # 21.01.2019 cleanup
+#$VERSION="1.5"; # 04.12.2018 also for rand_dutch
+#$VERSION="1.4"; # 26.09.2014 Removed lookup filename in isContentWord
 #$VERSION="1.3"; # 28.01.2014 All ref to cornetto replaced by Wordnet
 #$VERSION="1.2"; # 20.01.2014 TSW added to content categories
 #$VERSION="1.1"; # 26.11.2013 Cardinals/ordinals added to content words
 #$VERSION="1.0"; # Taken language dependent subroutines from picto.pm and put them here
 
-require "$Bin/sclera_dutch.pm";
-require "$Bin/beta_dutch.pm";
+print $log "picto_dutch $VERSION loaded\n" if $log;
+
+require "$Bin/".$targetlanguage."_dutch.pm";
+# require "$Bin/sclera_dutch.pm";
+# require "$Bin/beta_dutch.pm";
+# require "$Bin/rand_dutch.pm";
 
 #---------------------------------------
 package word;
@@ -128,4 +134,13 @@ sub addPictosNotInWordnet {
     else {
 	return undef;
     }
+}
+
+
+#--------------
+package picto;
+#--------------
+
+sub getNot {
+  return "niet";
 }

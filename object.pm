@@ -31,17 +31,20 @@ use DB_File;
 #---------------------------------------
 
 1;
-
+print $log "object.pm version $VERSION loaded\n" if $log;
 #---------------------------------------
 
 if($main::targetlanguage eq 'sclera'){
 	$tempfilelocation="$Bin/../tmp/sclera/";
+	print $log "tempfilelocation: $tempfilelocation\n" if $log;
 }
 elsif($main::targetlanguage eq 'beta'){
 	$tempfilelocation="$Bin/../tmp/beta/";
+	print $log "tempfilelocation: $tempfilelocation\n" if $log;
 }
 else{
 	$tempfilelocation="$Bin/../tmp/";
+	print $log "tempfilelocation: $tempfilelocation\n" if $log;
 }
 
 #---------------------------------------
@@ -68,6 +71,63 @@ sub pushFeature {
 	    $pkg->{$feature}=$value;
 	}
     }
+}
+
+sub showInLog {
+  my ($pkg,$indent,$already)=@_;
+  if ($already->{$pkg}) { return undef;}
+  $already->{$pkg}=1;
+  my $skips={'logfile' =>1,  # these are the features not shown in the logfile
+             'wordnetdb' => 1,
+             'target' => 1};
+  my $maxels=10;
+  if (my $log=$pkg->{logfile}) {
+    my $ref=ref($pkg);
+    print $log "$ref\n";
+    foreach (sort keys %$pkg) {
+      if ($skips->{$_}) {next;}
+      my $value=$pkg->{$_};
+      if ($value eq '') { next;}
+      print $log &Space($indent)." $_\t";
+      if (ref($value) eq 'ARRAY') {
+        print $log "ARRAY\n";
+        my $elnr=-1;
+        foreach my $el (@$value) {
+          $elnr++;
+          if ($elnr>$maxels) {
+            print $log &Space($indent)."...\n";
+            last;
+          }
+          print $log &Space($indent)." Element $elnr: ";
+          unless ($el->showInLog($indent+1,$already)) {
+            print $log "already shown\n";
+          }
+        }
+      }
+      elsif (ref($value) eq '') {
+        print $log "$value\n";
+      }
+      elsif ($value->isa("object")) {
+        unless ($value->showInLog($indent+1,$already)) {
+         print $log "already shown\n";
+        }
+      }
+    }
+  }
+  return 1;
+}
+  
+sub Space {
+    my ($level)=@_;
+    my $distance=2;
+    my ($space,$spacedistance);
+    for ($i=0;$i<$distance;$i++) {
+        $spacedistance.=" ";
+    }
+    for ($i=0;$i<$level;$i++) {
+        $space.=$spacedistance;
+    }
+    return $space;
 }
 
 #---------------------------------------
@@ -105,7 +165,9 @@ sub detectSentences {
 	if ($words->[$i]->endOfSentence) {
 	    my $sentence=sentence->new(words,[@sentencewords],
 				       target,$pkg->{target},
-				       wordnetdb,$pkg->{wordnetdb});
+				       wordnetdb,$pkg->{wordnetdb},
+				       logfile,$pkg->{logfile});
+	    $sentence->addTextField;
 	    if ($condition) {
 		$sentence->{condition}=$condition;
 	    }
@@ -116,7 +178,9 @@ sub detectSentences {
     if (@sentencewords>0) {
 	my $sentence=sentence->new(words,[@sentencewords],
 				   target, $pkg->{target},
-				   wordnetdb,$pkg->{wordnetdb});
+				   wordnetdb,$pkg->{wordnetdb},
+				   logfile,$pkg->{logfile});
+	$sentence->addTextField;
 	if ($condition) {
 	    $sentence->{condition}=$condition;
 	}
@@ -135,7 +199,8 @@ sub tokenize {
     foreach (@tokens) {
     	push(@words,word->new(token,$_,
 			      target,$pkg->{target},
-			      wordnetdb,$pkg->{wordnetdb}));
+			      wordnetdb,$pkg->{wordnetdb},
+			      logfile,$pkg->{logfile}));
     }
     $pkg->{words}=[@words];
 }
@@ -157,6 +222,20 @@ sub lemmatize {
     }
 }
 
+sub addTextField {
+  my ($pkg)=@_;
+  my $words=$pkg->{words};
+  my @text;
+  if (@$words>0) {
+    foreach (@$words) {
+      push(@text,$_->{token});
+    }
+    $pkg->{text}=join(' ',@text);
+    return 1;
+  }
+  return undef;
+}
+
 #---------------------------------------------
 package word;
 #---------------------------------------------
@@ -169,6 +248,21 @@ sub findSpellingAlternatives {
     my $insertions=$pkg->findOneInsertion;
     my $substitutions=$pkg->findOneSubstitution;
     return [@$deletions,@$insertions,@$substitutions];
+}
+
+sub endOfSentence {
+    my ($pkg)=@_;
+    if (($pkg->{tag}) &&
+	($pkg->{tag} eq 'LET()') &&
+	($pkg->{token}=~/[\.!\?]/)) {
+	return 1;
+    }	
+    elsif ($pkg->{token}=~/[\.!\?]/) {
+	return 1;
+    }
+    else {
+	return undef;
+    }
 }
 
 #---------------------------------------------

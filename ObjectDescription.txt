@@ -1,3 +1,32 @@
+OBJECT DESCRIPTIONS OF Text2Picto.pl
+
+LOADING OF MODULES
+------------------
+Text2Picto.pl loads
+  GenericFunctions.pm
+  object.pm
+  Database.pm
+  synset.pm
+  picto.pm
+  $targetlanguage.pm (sclera/beta/rand)
+  picto_$sourcelanguage.pm (dutch/english/spanish)
+  $targetlanguage_$sourcelanguage.pm (sclera_dutch...)
+  
+  
+==================================================================================
+0. main
+==================================================================================
+These are functions which are not object methods
+
+LoacConfigPaths (GenericFunctions.pm)
+  sets the paths to all external data and tools
+  
+LoadDefaultValues (GenericFunctions.pm)
+  sets default values for all command line options
+  
+processOptions (GenericFunctions.pm)
+  reads and sets all options
+
 ==================================================================================
 1. object
 ==================================================================================
@@ -13,6 +42,10 @@ openWordnet (synset_cornetto.pm)
 
 pushFeature (object.pm)
   Takes a feature name and value (reference to array) as input. Pushes the value into the value array of the feature. Creates the value array of the feature if it does not exist.
+  
+showInLog (object.pm)
+  Takes an indent level (digit) and a reference to a hash for already printed objects as input. Prints the content of the object into the logfile. Calls itself for deeper levels (with increased indent level). Calls the function Space($level), which prints out a set nr of spaces depending on the input argument.
+  Returns 1 if function succeeds
 
 ==================================================================================
 2. message
@@ -128,7 +161,7 @@ JSONOut (picto.pm)
   Provides JSON output of the message. Uses sentence::JSONOut (picto.pm).
 
 lemmatize (object.pm) 
-  Expects a tagged message as input. Lemmatises each of the sentences in the message using sentence::lemmatize (object.pm).
+  Expects a tagged message as input. Lemmatizes each of the sentences in the message using sentence::lemmatize (object.pm).
 
 lookupPictoDictionary (picto.pm)
   Looks up the words in the message in the picto dictionary. Uses openWordnet (object.pm) and sentence::lookupPictoDictionary (picto_cornetto.pm).

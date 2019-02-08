@@ -12,8 +12,8 @@ $VERSION="1.0"; # Version used in the first release for WAI-NOT
 
 
 # Contains the methods for connecting to the Postgres database
+print $log "Database.pm loaded\n" if $log;
 1;
-
 #---------------------------------------	
 package DBI::db;
 #---------------------------------------	

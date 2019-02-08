@@ -23,9 +23,8 @@ $VERSION="1.3.5"; # 19.11.14 Add frequency information of tokens that could have
 #$VERSION="1.0"; # Version used in the first release for WAI-NOT
 
 #---------------------------------------------
-
+print $log "synset.pm $VERSION loaded\n" if $log;
 1;
-
 #---------------------------------------
 package wordnet;
 #---------------------------------------
@@ -38,12 +37,15 @@ package message;
 
 sub addSynsets {
     my ($pkg)=@_;
+    my $log=$pkg->{logfile};
+    print $log "\n\nmessage::addSynsets\n-------------------------------\n" if $log;
     $pkg->openWordnet;
     my $sentences=$pkg->{sentences};
     foreach (@$sentences) {
 	$_->{wordnetdb}=$pkg->{wordnetdb};
 	$_->addSynsets;
     }
+    $pkg->showInLog;
 }
 
 #---------------------------------------
@@ -52,6 +54,8 @@ package sentence;
 
 sub addSynsets {
     my ($pkg)=@_;
+#     my $log=$pkg->{logfile};
+#     print $log "Add Synsets to Sentence\n" if $log;
     $pkg->openWordnet;
     my $words=$pkg->{words};
     foreach (@$words) {
@@ -91,6 +95,8 @@ sub addLexUnits {
     unless ($lemma=$pkg->{lemma}) {
 	$lemma=$pkg->{token};
     }
+#     my $log=$pkg->{logfile};
+#     print $log "\tAdd LexUnits for $lemma\n" if $log;
     $lemma=~s/'/\\\'/g; 
     my $sql="select id,wsdfreq from lexunits where lemma='$lemma' and disable is null;";
     my $results=$pkg->{wordnetdb}->lookup($sql);
@@ -100,14 +106,17 @@ sub addLexUnits {
 			      id,$_->[0],
 			      freq,$_->[1],
 			      wordnetdb,$pkg->{wordnetdb},
-			      target,$pkg->{target});
-	push(@lexunits,$lexunit);
+			      target,$pkg->{target},
+			      logfile,$pkg->{logfile});
+# 	print $log "\tid: $_->[0]\n";
+        push(@lexunits,$lexunit);
     }
     if (@lexunits>0) {
 	$pkg->{lexunits}=[@lexunits];
     }
     else {
-	return undef;
+# 	print $log "\tno lexunit id found in database\n";
+        return undef;
     }
 }
 
@@ -129,19 +138,24 @@ package lexunit;
 
 sub addSynset { 
     my ($pkg)=@_;
+#     my $log=$pkg->{logfile};
     my $id=$pkg->{id};
     my $sql="select synset from lex2syn where lexunit='$id';";
     my $results=$pkg->{wordnetdb}->lookup($sql);
+#     print $log "\tAdd Synset to Lexunit $id: " if $log;
     if ($results->[0]->[0]) {
 	my $synset=synset->new(synset,$results->[0]->[0],
 		               freq,$pkg->{freq},
 			       wordnetdb,$pkg->{wordnetdb},
-			       target,$pkg->{target});
+			       target,$pkg->{target},
+			       logfile,$pkg->{logfile});
 	$pkg->{synset}=$synset;
+#        print $log "synset $results->[0]->[0]\n" if $log;
 	$synset->addPos;
 	return 1;
     }
     else {
+#         print $log "No synset found\n" if $log;
 	return undef;
     }
 }
@@ -156,14 +170,16 @@ sub addLemma {
 	$lexunit=lexunit->new(lemma,$_->[0],
 			      id,$pkg->{id},
 			      wordnetdb,$pkg->{wordnetdb},
-			      target,$pkg->{target});
+			      target,$pkg->{target},
+			      logfile,$pkg->{logfile});
 	push(@lexunits,$lexunit);
     }
     if (@lexunits>0) {
 	$pkg->{lexunits}=[@lexunits];
     }
     else {
-	next;
+# 	print $log "\tno lexunit id found in database\n" if $log;
+        next;
     }
 }
 
@@ -213,7 +229,8 @@ sub addLexUnits {
     foreach (@$results) {
 	$lexunit=lexunit->new(id,$_->[0],
 			      wordnetdb,$pkg->{wordnetdb},
-			      target,$pkg->{target});
+			      target,$pkg->{target},
+			      logfile,$pkg->{logfile});
 	push(@lexunits,$lexunit);
     }
     if (@lexunits>0) {
@@ -247,7 +264,8 @@ sub addXPosNearSynonyms {
 	    my $synset=synset->new(synset,$_->[0],
 				   wordnetdb,$pkg->{wordnetdb},
 				   calling_xpos,$pkg,
-				   target,$pkg->{target});
+				   target,$pkg->{target},
+				   logfile,$pkg->{logfile});
 	    push(@relations,$synset);
 	}
     }
@@ -267,7 +285,8 @@ sub addHyperonyms {
     foreach (@$results) {
 	my $synset=synset->new(synset,$_->[0],
 			       wordnetdb,$pkg->{wordnetdb},
-			       target,$pkg->{target});
+			       target,$pkg->{target},
+			       logfile,$pkg->{logfile});
 	push(@relations,$synset);
     }
     if (@relations>0) {
@@ -301,7 +320,8 @@ sub addAntonyms {
 	    my $synset=synset->new(synset,$_->[0],
 				   wordnetdb,$pkg->{wordnetdb},
 				   calling_antonym,$pkg,
-				   target,$pkg->{target});
+				   target,$pkg->{target},
+				   logfile,$pkg->{logfile});
 	    push(@relations,$synset);
 	}
     }
@@ -321,7 +341,8 @@ sub addHyponyms {
     foreach (@$results) {
 	push(@relations,synset->new(synset,$_->[0],
 				    wordnetdb,$pkg->{wordnetdb},
-				    target,$pkg->{target}));
+				    target,$pkg->{target},
+				    logfile,$pkg->{logfile}));
     }
     if (@relations>0) {
 	$pkg->{hyponyms}=[@relations];

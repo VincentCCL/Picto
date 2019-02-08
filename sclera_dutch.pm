@@ -10,10 +10,12 @@
 
 #---------------------------------------
 
-1;
 
 $VERSION="1.1"; # 31.10.14 Sclera pictographs for possessive pronouns have been added
 #$VERSION="1.0"; # Language dependent info is taken from sclera.pm and put here
+
+print $log "sclera_dutch $VERSION loaded\n" if $log;
+1;
 
 #---------------------------------------
 package sclera;

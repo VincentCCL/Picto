@@ -1,4 +1,5 @@
-####### synset_cornetto.pm ########
+# synset_dutch.pm
+# previously synset_cornetto.pm ########
 
 # By Vincent Vandeghinste
 # vincent@ccl.kuleuven.be
@@ -11,7 +12,7 @@ $VERSION='1.0'; # Functions taken over from synset.pm to remove language depende
 #---------------------------------------------
 
 1;
-
+print $log "synset_dutch.pm loaded\n" if $log;
 #---------------------------------------
 package cornetto;
 #---------------------------------------

@@ -6,7 +6,11 @@
 
 #---------------------------------------
 
-$VERSION="3.0"; # 12.12.2016 Added JSON and Parallel JSON output options
+$VERSION="3.2.1"; # 23.01.2019 Bug fix in generation of complex pictos
+#$VERSION="3.2"; # 21.01.2019 Cleanup
+#$VERSION="3.1"; # 04.12.2018 Shorter version of addPictoSingle, addPictoComplex and addPictoAsDependent
+                # checks for url column in database table and retrieves url from there and puts it in picto object
+#$VERSION="3.0"; # 12.12.2016 Added JSON and Parallel JSON output options
 #$VERSION="2.2.3"; # 07.01.15 Removed frequency feature again because of complex picto issues (nagels lakken: nagel as spijker, so no complex picto is formed)
 #$VERSION="2.2.2"; # 19.11.14 The picto now contains frequency information from its connected synset, which is used for path finding
 #$VERSION="2.2.1"; # 14.11.14 Added references to the Maxtime sub allowing for time-outs in the translation process
@@ -37,30 +41,20 @@ $VERSION="3.0"; # 12.12.2016 Added JSON and Parallel JSON output options
 #---------------------------------------
 
 1;
+print $log "picto.pm $VERSION loaded\n" if $log;
 
-$starttime=time;
-$maxtime=60;
+#$starttime=time;
+#$maxtime=60;  # script stops after n seconds
 
-sub Maxtime {
-    $now=time;
-    if ($starttime == -1) {
-	return;
-    }
-    $elapsed=$now-$starttime;
-    if ($elapsed > $maxtime) {
-        print "x\n";
-	die "Maximum time ($maxtime seconds) exceeded. All further processing stopped.\n";        
-    }
-}
 
-use DB_File; 
-require "$Bin/sclera.pm";
-require "$Bin/beta.pm";
+#use DB_File; 
 
-$paralleloutput="$Bin/../tmp/output/ParallelOutput";
+# require "$Bin/sclera.pm";
+# require "$Bin/beta.pm";
+# require "$Bin/rand.pm";
 
-$imgwidth=110; 
-$imgheigth=110; 
+require "$Bin/$targetlanguage.pm";
+require "$Bin/picto_".$sourcelanguage.".pm";
 
 #---------------------------------------
 package picto;
@@ -88,21 +82,23 @@ sub existNegative {
 
 sub adaptToPolarity {
     my ($pkg,$path)=@_;
-    if(($main::sourcelanguage eq "cornetto") || ($main::sourcelanguage eq "dutch")){
-	$not = "niet";
-    }
-    elsif($main::sourcelanguage eq "english"){
-	$not = "no";
-    }
-    elsif($main::sourcelanguage eq "spanish"){
-	$not = "no";
-    }
+    $not=$pkg->getNot;
+#     if(($main::sourcelanguage eq "cornetto") || ($main::sourcelanguage eq "dutch")){
+# 	$not = "niet";
+#     }
+#     elsif($main::sourcelanguage eq "english"){
+# 	$not = "no";
+#     }
+#     elsif($main::sourcelanguage eq "spanish"){
+# 	$not = "no";
+#     }
     my $db=$pkg->{wordnetdb};
     if (my $polarity=$pkg->{polarity}) {
 	my $negdisplay=image->new(filename,$pkg->{target}->negativePicto,
 				  token,$not,
 				  wordnetdb,$db,
-				  target,$pkg->{target});
+				  target,$pkg->{target},
+				  logfile,$pkg->{logfile});
 	my $displays=$path->{display};
 	push(@$displays,$negdisplay);
 	my $wordlist=$path->{words};
@@ -212,9 +208,36 @@ sub stringify {
     return join('/',@string);
 }
     
+# sub printInLogfile {
+#     my ($pkg)=@_;
+#     my $log=$pkg->{logfile};
+#     my $display=$pkg->{display};
+#     print $log "\tPathweight: ".$pkg->weight."\n" if $log;
+#     if ($display) {
+#         print $log "\tDisplay: " if $log;
+#         foreach (@$display) {
+#             print $log $_->getContent.", " if $log;
+#         }
+#         print $log "\n" if $log;
+#     }
+#     else {
+#         print $log "\tDisplay: No words yet\n" if $log;
+#     }
+#     my $wordstoprocess=$pkg->{wordstoprocess};
+#     print $log "\tWords to process: " if $log;
+#     foreach (@$wordstoprocess) {
+#         my $token=$_->{token};
+#         print $log "$token, " if $log;
+#     }
+#     print $log "\n" if $log;
+# }
+
 sub extend {
     &main::Maxtime;
     my ($pkg)=@_;
+#     my $log=$pkg->{logfile};
+#     print $log "\nExtending path\n";
+#     $pkg->printInLogfile;
     my @newpaths;
     my $oldwordstoprocess=$pkg->{wordstoprocess};
     if (my $current=shift(@$oldwordstoprocess)) {
@@ -225,7 +248,9 @@ sub extend {
 						       $complexes->[$i],
 						       [@wordstoprocess]);
 		    $newpath->spliceWordWithDep($complexes->[$i]);
-		    push(@newpaths,$newpath);
+# 		    print $log "  Extended path with complex picto: \n";
+#                     $newpath->printInLogfile;
+                    push(@newpaths,$newpath);
 		}
 	    }
 	}
@@ -234,7 +259,9 @@ sub extend {
 		$newpath=$pkg->extendWithPicto(	"single",$current,
 						$single,
 						[@wordstoprocess]);
-		push(@newpaths,$newpath);
+		#print $log "  Extend path with single picto:\n";
+#                 $newpath->printInLogfile;
+                push(@newpaths,$newpath);
 	    }
 	}
 	if ($asdependents=$current->getPictoAsDependents) {
@@ -246,14 +273,18 @@ sub extend {
 							   [@wordstoprocess]);
 			$newpath->spliceWordWithHead($asdependents->[$i]);
 			$newpath->spliceWordWithDep($asdependents->[$i]); 
-			push(@newpaths,$newpath);
+			#print $log "  Extend path with complex\n";
+#                         $newpath->printInLogfile;
+                        push(@newpaths,$newpath);
 		    }
 		}
 	    }			
 	}
 	unless (@newpaths) {
 	    $newpath=$pkg->extendNoPicto($current);
-	    push(@newpaths,$newpath);
+	    #print $log "  Extend path with word (no picto found)\n";
+            if ($log) {$newpath->printInLogfile}
+            push(@newpaths,$newpath);
 	}
 	return @newpaths;
     }
@@ -266,7 +297,8 @@ sub extendNoPicto {
     my $display=text->new(text,$word->{token},
 			  pathlength,$main::oovpunishment,
 			  wordnetdb,$db,
-			  target,$pkg->{target});
+			  target,$pkg->{target},
+			  logfile,$pkg->{logfile});
     my $newpath=$pkg->clone;
     $newpath->pushFeature(display,[$display]);
     $newpath->pushFeature(words,[$word]);
@@ -274,7 +306,8 @@ sub extendNoPicto {
 	$display=image->new(text,$word->{token},
 			    filename,$pkg->{target}->negativePicto,
 			    wordnetdb,$db,
-			    target,$pkg->{target});
+			    target,$pkg->{target},
+			    logfile,$pkg->{logfile});
 	$newpath->pushFeature(display,[$display]);
 	$newpath->pushFeature(words,[$neg]);
 	delete $word->{polarity};				   
@@ -335,7 +368,9 @@ sub extendWithPicto {
 			   type,$type,
 			   pathlength,$picto->{pathlength},
 			   wordnetdb,$db,
-			   target,$pkg->{target});
+			   url,$picto->{url},
+			   target,$pkg->{target},
+			   logfile,$pkg->{logfile});
     my $newpath=$pkg->clone;
     $newpath->pushFeature(display,[$display]);
     $newpath->pushFeature(words,[$word]);
@@ -345,8 +380,10 @@ sub extendWithPicto {
 			        type,$type,
 				antonympicto,"1",
 				wordnetdb,$db,
+				url,$picto->{url},
 				target,$picto->{target},
-				pathlength,1);
+				pathlength,1,
+				logfile,$pkg->{logfile});
 	$newpath->pushFeature(display,[$negative]);
 	my $negword=word->getNegativeWord;
 	$newpath->pushFeature(words,[$negword]);
@@ -360,7 +397,7 @@ sub extendWithPicto {
 package message;
 #---------------------------------------
 
-sub TextOut {
+sub text {
     my ($pkg)=@_;
     my $sentences=$pkg->{sentences};
     foreach (@$sentences) {
@@ -368,7 +405,7 @@ sub TextOut {
     }
 }
 
-sub HTMLOut {
+sub html {
     my ($pkg,$level)=@_;
     print "<html>\n";
     my $sentences=$pkg->{sentences};
@@ -379,7 +416,7 @@ sub HTMLOut {
     print "</html>\n";
 }	
 
-sub ParallelJSONOut {
+sub paralleljson {
     my ($pkg,$level)=@_;
     print "{ \n \"input\" :";
     my $text=$pkg->{text};
@@ -393,7 +430,7 @@ sub ParallelJSONOut {
     print "\"\\n\" ] \n}\n";
 }
 
-sub JSONOut {
+sub json {
     my ($pkg,$level)=@_;
     print "{ \n \"input\" :";
     my $text=$pkg->{text};
@@ -418,9 +455,11 @@ sub lookupPictoDictionary {
 
 sub addPictoPaths {
     my ($pkg)=@_;
+    my $log=$pkg->{logfile};
+    print $log "\n\nmessage::addPictoPaths\n-------------------------------\n" if $log;
     $pkg->addPictos;
     $pkg->searchArgMax;	
-    $flag;
+    $pkg->showInLog;
 }
 
 sub searchArgMax {
@@ -445,7 +484,7 @@ sub addPictos {
 package sentence;
 #---------------------------------------
 
-my $stamp=time.$main::sessionid;
+#my $stamp=time.$main::sessionid; ## WAT DOET DIT HIER?
 
 sub addPictos {
     &main::Maxtime;
@@ -480,7 +519,8 @@ sub searchArgMax {
     my $db=$pkg->{wordnetdb};
     my $q=[pictopath->new(wordstoprocess,[@$wordstoprocess],
 			  wordnetdb,$db,
-			  target,$pkg->{target})];
+			  target,$pkg->{target},
+			  logfile,$pkg->{logfile})];
     my ($firstpath,$i);
     until ((@$q == 0) ||
 	   ($q->[0]->containsAllInfo)) {
@@ -655,13 +695,20 @@ sub ParallelOutOtherFile {
     close PARALLEL;
 }
 
-sub HTMLOut {
+sub HTMLOut { # new version, checks whether image object has a url field
     my ($pkg,$level)=@_;
     my $path=$pkg->{path};
+    my $log=$pkg->{logfile};
     my $display=$path->{display};
-    my $target=$pkg->{target};
-    my $url=$target->getURL;
-    my @pictodirs=$target->getPictoDirs;
+    my ($url,@pictodirs);
+    if (my $target=$pkg->{target}) {
+      $url=$target->getURL;
+      @pictodirs=$target->getPictoDirs;
+    }
+    else {
+      print $log "No target set in package \n" if $log;
+      $pkg->showInLog;
+    }
     my $imgsize;
     if ($main::imgwidth) {
 	$imgsize=" width=\"$main::imgwidth\" ";
@@ -671,18 +718,23 @@ sub HTMLOut {
     }
     foreach (@$display) {
 	if (ref($_) eq 'image') {
-	    $filename=$_->{filename};
+	  $filename=$_->{filename};
+	  if ($imageurl=$_->{url}) {
+	    print "<img src=\"$imageurl\" $imgsize alt=\"$filename\">\n";
+	  }
+	  else {
 	    foreach $dir (@pictodirs) {
 		if (-e "$dir/$filename") {
 		    if ($url) {
-			print "<img src=\"$url/$filename\" $imgsize>\n";
+			print "<img src=\"$url/$filename\" $imgsize alt=\"$filename\">\n";
 		    }
 		    else {
-			print "<img src=\"$dir/$filename\" $imgsize>\n";
+			print "<img src=\"$dir/$filename\" $imgsize alt=\"$filename\">\n";
 		    }
 		    last;
 		}
 	    }
+	  }
 	}
 	else {
 	    $text=$_->{text};
@@ -749,20 +801,29 @@ sub lookupPictoDictionaryTokLemTag {
     }
     my ($tok,$lem,$tag)=@$toklemtag;
     my ($sql);
+    $sql="select column_name from information_schema.columns where table_name='$dictionarytable' and column_name='url';";
+    my $urlresult=$pkg->{wordnetdb}->lookup($sql);
+    my $retrieve_columns;
+    if (defined($urlresult->[0]->[0])) {
+      $retrieve_columns="picto,url";
+    }
+    else {
+       $retrieve_columns="picto";
+    }
     if ($tok && $tag && $lem) {
-	$sql="select picto from $dictionarytable where token='$tok' and lemma='$lem' and tag='$tag';";
+	$sql="select $retrieve_columns from $dictionarytable where token='$tok' and lemma='$lem' and tag='$tag';";
     }
     elsif ($tok && $tag) {
-	$sql="select picto from $dictionarytable where token='$tok' and tag='$tag';";
+	$sql="select $retrieve_columns from $dictionarytable where token='$tok' and tag='$tag';";
     }	
     elsif ($lem && $tag) {
-	$sql="select picto from $dictionarytable where lemma='$lem' and tag='$tag';";
+	$sql="select $retrieve_columns from $dictionarytable where lemma='$lem' and tag='$tag';";
     }
     elsif ($tok) {
-	$sql="select picto from $dictionarytable where token='$tok' and tag IS NULL;";
+	$sql="select $retrieve_columns from $dictionarytable where token='$tok' and tag IS NULL;";
     }
     elsif ($lem) {
-	$sql="select picto from $dictionarytable where lemma='$lem' and tag IS NULL;";
+	$sql="select $retrieve_columns from $dictionarytable where lemma='$lem' and tag IS NULL;";
     }
     else {
 	return undef;
@@ -772,7 +833,9 @@ sub lookupPictoDictionaryTokLemTag {
 	$picto=picto->new(file,$results->[0]->[0],
 			  wordnetdb,$db,
 			  target,$pkg->{target},
-			  pathlength,-$main::dictionary_advantage);
+			  url,$results->[0]->[1],
+			  pathlength,-$main::dictionary_advantage,
+			  logfile,$pkg->{logfile});
 	$pkg->{picto_single}=[$picto];
 	return 1;
     }
@@ -795,7 +858,8 @@ sub lookupFilename {
 	    $picto=picto->new(file,$filename,
 			      pathlength,0,
 			      wordnetdb,$db,
-			      target,$pkg->{target});
+			      target,$pkg->{target},
+			      logfile,$pkg->{logfile});
 	    $pkg->pushFeature(picto_single,[$picto]);;
 	    return 1;								
 	}
@@ -1153,267 +1217,190 @@ sub addPictoTypes {
     }
 }
 
-sub addPictoSingle {
-    &main::Maxtime;
+sub addPictoSingle { # new and shorter version (VV)
     my ($pkg,$penalty)=@_;
+    my $log=$pkg->{logfile};
     my $target=$pkg->{target};
-    if(($main::sourcelanguage eq 'english') || ($main::sourcelanguage eq 'spanish')){
-    	my $sql="select lemma,relation,number from $target where synset LIKE '%$pkg->{synset}%';"; 
-        my $results=$pkg->{wordnetdb}->lookup($sql);
-	   my (@picto,$pathlength);
-	    my @pictodirs=$target->getPictoDirs;
-	    my $extension=$target->getExtension;
-	    if ($pkg->{calling_antonym}) { 
-		my $negative=$target->negativePicto;
+    # check for url field in table
+    my $sql="select column_name from information_schema.columns where table_name='$target' and column_name='url';";
+    my $urlresult=$pkg->{wordnetdb}->lookup($sql);
+    my $retrieve_columns;
+    if (defined($urlresult->[0]->[0])) {
+      $retrieve_columns="lemma,relation,number,url";
+    }
+    else {
+    $retrieve_columns="lemma,relation,number";
+    }
+   # my $sql="select lemma,relation,number from $target where synset LIKE '%$pkg->{synset}%';"; # Version 2.0 for English
+    my $sql="select $retrieve_columns from $target where synset = '$pkg->{synset}';";
+    my $results=$pkg->{wordnetdb}->lookup($sql);
+    my (@picto,$pathlength);
+    my @pictodirs=$target->getPictoDirs;
+    my $extension=$target->getExtension;
+    if ($pkg->{calling_antonym}) { # The picto is the antonym of what should be shown
+	my $negative=$target->negativePicto;
+    }
+  RESULT:foreach (@$results) {
+      my $current_penalty=$penalty;
+      unless ($_->[1] eq 'synonym') {
+	  $current_penalty+=$main::hyperonympenalty;
+      }
+    DIR:foreach $dir (@pictodirs) {
+	if (-e "$dir/".$_->[0].$extension) {
+	    $picto=picto->new(wordnetdb,$pkg->{wordnetdb},
+			      file,"$_->[0]".$extension,
+			      pathlength,$current_penalty,
+			      logfile,$pkg->{logfile},
+			      synset,$pkg->{synset},
+			      target,$pkg->{target},
+			      number,$_->[2]);
+	    if ($negative) {
+		$picto->{neg}=$negative;
 	    }
-	  RESULT:foreach (@$results) {
-	      my $current_penalty=$penalty;
-	      unless ($_->[1] eq 'synonym') {
-		  $current_penalty+=$main::hyperonympenalty;
-	      }
-	    DIR:foreach $dir (@pictodirs) {
-		if (-e "$dir/".$_->[0].$extension) {
-			$freq=0;
-		    $picto=picto->new(wordnetdb,$pkg->{wordnetdb},
-				      file,"$_->[0]".$extension,
-				      freq,$freq,
-				      pathlength,$current_penalty,
-				      synset,$pkg->{synset},
-				      target,$pkg->{target},
-				      number,$_->[2]);
-		    if ($negative) {
-			$picto->{neg}=$negative;
-		    }
-		    push(@picto,$picto);
-		    last DIR;
-		}
-		next RESULT;
+	    if ($url=$_->[3]) {
+	      $picto->{url}=$url;
 	    }
-	  }
-	    if (@picto) {
-		return [@picto];
-	    }
-	    else {
-		return undef;
-	    }
-	    }
-    else{
-	my $sql="select lemma,relation,number from $target where synset = '$pkg->{synset}';"; 
-        my $results=$pkg->{wordnetdb}->lookup($sql);
-	   my (@picto,$pathlength);
-	    my @pictodirs=$target->getPictoDirs;
-	    my $extension=$target->getExtension;
-	    if ($pkg->{calling_antonym}) { 
-		my $negative=$target->negativePicto;
-	    }
-	  RESULT:foreach (@$results) {
-	      my $current_penalty=$penalty;
-	      unless ($_->[1] eq 'synonym') {
-		  $current_penalty+=$main::hyperonympenalty;
-	      }
-	    DIR:foreach $dir (@pictodirs) {
-		if (-e "$dir/".$_->[0].$extension) {
-			$freq=0;
-		    $picto=picto->new(wordnetdb,$pkg->{wordnetdb},
-				      file,"$_->[0]".$extension,
-				      freq,$freq,
-				      pathlength,$current_penalty,
-				      synset,$pkg->{synset},
-				      target,$pkg->{target},
-				      number,$_->[2]);
-		    if ($negative) {
-			$picto->{neg}=$negative;
-		    }
-		    push(@picto,$picto);
-		    last DIR;
-		}
-		next RESULT;
-	    }
-	  }
-	    if (@picto) {
-		return [@picto];
-	    }
-	    else {
-		return undef;
-	    }
-	    }
+	    push(@picto,$picto);
+	    last DIR;
+	}
+	next RESULT;
+    }
+  }
+    if (@picto) {
+	return [@picto];
+    }
+    else {
+	return undef;
+    }
 }
+
 
 sub addPictoComplex {
-    &main::Maxtime;
     my ($pkg,$penalty)=@_;
     my $target=$pkg->{target};
-    if(($main::sourcelanguage eq 'english') || ($main::sourcelanguage eq 'spanish')){
-    	my $sql="select lemma,headrel,dependent,deprel from $target where head LIKE '%$pkg->{synset}%';";
-	    my $results=$pkg->{wordnetdb}->lookup($sql);
-	    my (@picto,$pathlength,@depsynsets,@deprelations,@deps,$depweight,$depsynset);
-	    my $extension=$target->getExtension;
-	    foreach (@$results) {
-		my $current_penalty=$penalty;
-		unless ($_->[1] eq 'synonym') {
-		    $current_penalty+=$main::hyperonympenalty;
-		}
-		@depsynsets=split(/,/,$_->[2]);
-		@deprelations=split(/,/,$_->[3]);
-		@deps=();
-		$depweight=0;
-		for (my $i=0;$i<@depsynsets;$i++) {
-		    $depsynset=synset->new(wordnetdb,$pkg->{wordnetdb},
-					   synset,$depsynsets[$i],
-					   target,$pkg->{target});
-		    if ($deprelations[$i] eq 'hypernym') {
-			$current_penalty+=$main::hyperonympenalty;
-		    }
-		    push(@deps,$depsynset);
-		}
-		push(@picto,picto->new(wordnetdb,$pkg->{wordnetdb},
-				       head,$pkg,
-				       file,"$_->[0]".$extension,
-				       dep,[@deps],
-				       pathlength,$current_penalty,
-				       target,$pkg->{target}));
-	
-	    }
-	    if (@picto) {
-		return [@picto]
-	    }
-	    else {
-		return undef;
-	    }
+    # check for url field in table
+    my $sql="select column_name from information_schema.columns where table_name='$target' and column_name='url';";
+    my $urlresult=$pkg->{wordnetdb}->lookup($sql);
+    my $retrieve_columns;
+    if (defined($urlresult->[0]->[0])) {
+      $retrieve_columns="lemma,headrel,dependent,deprel,number,url";
     }
-    else{
-	my $sql="select lemma,headrel,dependent,deprel from $target where head = '$pkg->{synset}';"; 
-	    my $results=$pkg->{wordnetdb}->lookup($sql);
-	    my (@picto,$pathlength,@depsynsets,@deprelations,@deps,$depweight,$depsynset);
-	    my $extension=$target->getExtension;
-	    foreach (@$results) {
-		my $current_penalty=$penalty;
-		unless ($_->[1] eq 'synonym') {
-		    $current_penalty+=$main::hyperonympenalty;
-		}
-		@depsynsets=split(/,/,$_->[2]);
-		@deprelations=split(/,/,$_->[3]);
-		@deps=();
-		$depweight=0;
-		for (my $i=0;$i<@depsynsets;$i++) {
-		    $depsynset=synset->new(wordnetdb,$pkg->{wordnetdb},
-					   synset,$depsynsets[$i],
-					   target,$pkg->{target});
-		    if ($deprelations[$i] eq 'hypernym') {
-			$current_penalty+=$main::hyperonympenalty;
-		    }
-		    push(@deps,$depsynset);
-		}
-		push(@picto,picto->new(wordnetdb,$pkg->{wordnetdb},
-				       head,$pkg,
-				       file,"$_->[0]".$extension,
-				       dep,[@deps],
-				       pathlength,$current_penalty,
-				       target,$pkg->{target}));
+    else {
+    $retrieve_columns="lemma,headrel,dependent,deprel,number";
+    }
+    my $sql="select $retrieve_columns from $target where head = '$pkg->{synset}';";
+   # my $sql="select lemma,headrel,dependent,deprel from $target where head LIKE '%$pkg->{synset}%';"; # Version 2.0 for English
+    my $results=$pkg->{wordnetdb}->lookup($sql);
+    my (@picto,$pathlength,@depsynsets,@deprelations,@deps,$depweight,$depsynset);
+    my $extension=$target->getExtension;
+    foreach (@$results) {
+	my $current_penalty=$penalty;
+	unless ($_->[1] eq 'synonym') {
+	    $current_penalty+=$main::hyperonympenalty;
+	}
+	@depsynsets=split(/,/,$_->[2]);
+	@deprelations=split(/,/,$_->[3]);
+	@deps=();
+	$depweight=0;
+	for (my $i=0;$i<@depsynsets;$i++) {
+	    $depsynset=synset->new(wordnetdb,$pkg->{wordnetdb},
+				   synset,$depsynsets[$i],
+				   logfile,$pkg->{logfile},
+				   target,$pkg->{target});
+	    if ($deprelations[$i] eq 'hypernym') {
+		$current_penalty+=$main::hyperonympenalty;
+	    }
+	    push(@deps,$depsynset);
+	}
+	my $picto=picto->new(wordnetdb,$pkg->{wordnetdb},
+			       head,$pkg,
+			       file,"$_->[0]".$extension,
+			       dep,[@deps],
+			       pathlength,$current_penalty,
+			       logfile,$pkg->{logfile},
+			       target,$pkg->{target});
+	if ($url=$_->[5]) {
+	  $picto->{url}=$url;
+	}
+	push(@picto,$picto);
 	
-	    }
-	    if (@picto) {
-		return [@picto]
-	    }
-	    else {
-		return undef;
-	    }
+    }
+    if (@picto) {
+	return [@picto]
+    }
+    else {
+	return undef;
     }
 }
 
+
 sub addPictoAsDependent {
-    &main::Maxtime;
+    # Adds the picto for which the current synset is a dependent
+    # Does not add the other dependents to the picto !!
     my ($pkg,$penalty)=@_;
     my $target=$pkg->{target};
-    if(($main::sourcelanguage eq 'english') || ($main::sourcelanguage eq 'spanish')){
-	    my $sql="select lemma,head,headrel,dependent,deprel from $target where dependent LIKE '%$pkg->{synset}%';";
-	    my $results=$pkg->{wordnetdb}->lookup($sql);
-	    my (@picto,$headsynsetrel,$depsynset,$depsynsetrel,@depsynsets,@deprelations,@deps,$headsynset);
-	    my $extension=$target->getExtension;
-	    foreach (@$results) {
-		my $current_penalty=$penalty;
-		unless ($_->[2] eq 'synonym') {
-		    $current_penalty+=$main::hyperonympenalty;
-		}
-		$headsynset=synset->new(wordnetdb,$pkg->{wordnetdb},
-					synset,$_->[1],
-					target,$pkg->{target});
-		@depsynsets=split(/,/,$_->[3]);
-		@deprelations=split(/,/,$_->[4]);
-		@deps=();
-		for (my $i=0;$i<@depsynsets;$i++) {
-		    unless ($deprelations[$i] eq 'synonym') {
-			$current_penalty+=$main::hyperonympenalty;
-		    }
-		    if ($depsynsets[$i] eq $pkg->{synset}) {
-			push(@deps,$pkg); 
-		    }
-		    else {
-			my $depsynset=synset->new(wordnetdb,$pkg->{wordnetdb},
-						  synset,$depsynsets[$i],
-						  target,$pkg->{target});
-			push(@deps,$depsynset);
-		    }
-		}
-		push(@picto,picto->new(wordnetdb,$pkg->{wordnetdb},
-				       head,$headsynset,
-				       file,"$_->[0]".$extension,
-				       dep,[@deps],
-				       pathlength,$current_penalty,
-				       target,$pkg->{target}));
+        # check for url field in table
+    my $sql="select column_name from information_schema.columns where table_name='$target' and column_name='url';";
+    my $urlresult=$pkg->{wordnetdb}->lookup($sql);
+    my $retrieve_columns;
+    if (defined($urlresult->[0]->[0])) {
+      $retrieve_columns="lemma,head,headrel,dependent,deprel,number,url";
+    }
+    else {
+      $retrieve_columns="lemma,head,headrel,dependent,deprel,number";
+    }
+    my $sql="select $retrieve_columns from $target where dependent = '$pkg->{synset}';";
+    #my $sql="select lemma,head,headrel,dependent,deprel from $target where dependent LIKE '%$pkg->{synset}%';";
+    my $results=$pkg->{wordnetdb}->lookup($sql);
+    my (@picto,$headsynsetrel,$depsynset,$depsynsetrel,@depsynsets,@deprelations,@deps,$headsynset);
+    my $extension=$target->getExtension;
+    foreach (@$results) {
+	my $current_penalty=$penalty;
+	unless ($_->[2] eq 'synonym') {
+	    $current_penalty+=$main::hyperonympenalty;
+	}
+	$headsynset=synset->new(wordnetdb,$pkg->{wordnetdb},
+				synset,$_->[1],
+				logfile,$pkg->{logfile},
+				target,$pkg->{target});
+	@depsynsets=split(/,/,$_->[3]);
+	@deprelations=split(/,/,$_->[4]);
+	@deps=();
+	for (my $i=0;$i<@depsynsets;$i++) {
+	    unless ($deprelations[$i] eq 'synonym') {
+		$current_penalty+=$main::hyperonympenalty;
 	    }
-	    if (@picto) {
-		return [@picto]
+	    if ($depsynsets[$i] eq $pkg->{synset}) {
+		push(@deps,$pkg); # Depsynset);
 	    }
 	    else {
-		return undef;
+		my $depsynset=synset->new(wordnetdb,$pkg->{wordnetdb},
+					  synset,$depsynsets[$i],
+					  logfile,$pkg->{logfile},
+					  target,$pkg->{target});
+		push(@deps,$depsynset);
 	    }
-        }
-	else{
-	    my $sql="select lemma,head,headrel,dependent,deprel from $target where dependent = '$pkg->{synset}';";
-		    my $results=$pkg->{wordnetdb}->lookup($sql);
-		    my (@picto,$headsynsetrel,$depsynset,$depsynsetrel,@depsynsets,@deprelations,@deps,$headsynset);
-		    my $extension=$target->getExtension;
-		    foreach (@$results) {
-			my $current_penalty=$penalty;
-			unless ($_->[2] eq 'synonym') {
-			    $current_penalty+=$main::hyperonympenalty;
-			}
-			$headsynset=synset->new(wordnetdb,$pkg->{wordnetdb},
-						synset,$_->[1],
-						target,$pkg->{target});
-			@depsynsets=split(/,/,$_->[3]);
-			@deprelations=split(/,/,$_->[4]);
-			@deps=();
-			for (my $i=0;$i<@depsynsets;$i++) {
-			    unless ($deprelations[$i] eq 'synonym') {
-				$current_penalty+=$main::hyperonympenalty;
-			    }
-			    if ($depsynsets[$i] eq $pkg->{synset}) {
-				push(@deps,$pkg); 
-			    }
-			    else {
-				my $depsynset=synset->new(wordnetdb,$pkg->{wordnetdb},
-							  synset,$depsynsets[$i],
-							  target,$pkg->{target});
-				push(@deps,$depsynset);
-			    }
-			}
-			push(@picto,picto->new(wordnetdb,$pkg->{wordnetdb},
-					       head,$headsynset,
-					       file,"$_->[0]".$extension,
-					       dep,[@deps],
-					       pathlength,$current_penalty,
-					       target,$pkg->{target}));
-		    }
-		    if (@picto) {
-			return [@picto]
-		    }
-		    else {
-			return undef;
-		    }
-		}
+	}
+	$picto=picto->new(wordnetdb,$pkg->{wordnetdb},
+			       head,$headsynset,
+			       file,"$_->[0]".$extension,
+			       dep,[@deps],
+			       pathlength,$current_penalty,
+			       logfile,$pkg->{logfile},
+			       target,$pkg->{target});
+	if ($url=$_->[6]) {
+	  $picto->{url}=$url;
+	}
+        push(@picto,$picto);
+    }
+    if (@picto) {
+	return [@picto]
+    }
+    else {
+	return undef;
+    }
 }
+
 
 sub addRelations {
     my ($pkg)=@_;

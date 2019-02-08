@@ -1,8 +1,9 @@
-####### beta_dutch.pm ##########
+####### rand_dutch.pm ##########
 
-# By Vincent Vandeghinste
-# vincent@ccl.kuleuven.be
-# Date: 25.11.2013
+# By Ineke Schuurman, Leen Sevens and Vincent Vandeghinste
+# leen@ccl.kuleuven.be and vincent@ccl.kuleuven.be
+# Date: 03.12.2018
+
 
 #---------------------------------------
 
@@ -12,31 +13,27 @@
 
 1;
 
-$VERSION="1.0.1"; # 29.11.13 .png instead of .gif
-#$VERSION="1.0"; # Language dependent info is taken from beta.pm and put here
+$VERSION="0.1"; # 03.12.2018 copied from sclera_dutch, adapted for Rand (Ineke Schuurman)
 
 #---------------------------------------
-package beta;
+package rand;
 #---------------------------------------
 
-sub getPronouns {
+sub getPronouns { # returns nothings -- should be solved through the dictionary
+}
+
+sub getPronouns_ {
     my ($pkg,$persbez,$person,$number,$gender)=@_;
     if ($person=~/1/) {
 	if ($number eq 'ev') {
 	    if ($persbez eq 'pers') {
 		return 'ik.png';
 	    }
-	    elsif ($persbez eq 'bez') {
-		return 'mijn.png';
-	    }
-	}
+      	}
 	else {
 	    if ($persbez eq 'pers') {
 		return 'wij.png';
-	    }
-	    elsif ($persbez eq 'bez') {
-		return 'ons.png';
-	    }
+	    }	  
 	}
     }
     elsif ($person=~/2/) {
@@ -44,48 +41,38 @@ sub getPronouns {
 	    ($number eq 'getal')) {
 	    if ($persbez eq 'pers') {
 		return 'jij.png';
-	    }
-	    elsif ($persbez eq 'bez') {
-		return 'jouw.png';
-	    }
-	}
+	    }	   
+	} 
+   
 	else { 
 	    if ($persbez eq 'pers') {
-		return 'jullie_vnw.png';
+		return 'jullie.png';
 	    }
-	    elsif ($persbez eq 'bez') {
-		return 'jullie_bvnw.png';
-	    }
-	}
+	   }
     }
-    elsif ($person=~/3/) {
+     elsif ($person=~/3/) {
 	if (($number eq 'ev') or
 	    ($number eq 'getal')) {
 	    if ($gender eq 'masc') {
 		if ($persbez eq 'pers') {
 		    return 'hij.png';
 		}
-		elsif ($persbez eq 'bez') {
-		    return 'zijn_bvnw.png';
-		}
-	    }
-	    elsif ($gender eq 'fem') {
-		if ($persbez eq 'pers') {
-		    return 'zij_enkelv.png';
-		}
-		elsif ($persbez eq 'bez') {
-		    return 'haar_bvnw.png';
-		}
 	    }
 	}
+	    elsif ($gender eq 'fem') {
+		if ($persbez eq 'pers') {
+		    return 'zij2.png';
+		}
+	    }
+     }
 	else {
 	    if ($persbez eq 'pers') {
-		return 'zij_meerv.png';
+		return 'zij.png';
 	    }
 	    elsif ($persbez eq 'bez') {
-		return 'hun.png';
+		return 'jullie-3.png';
 	    }
 	}
     }
-}
 
+   

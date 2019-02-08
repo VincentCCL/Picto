@@ -1,4 +1,5 @@
-####### simplifybackup.pm ##########
+# shallow_dutch.pm
+# Previously named simplifybackup.pm 
 # Originally named: cornetto.pm
 
 # By Vincent Vandeghinste
@@ -12,7 +13,8 @@
 
 #---------------------------------------
 
-$VERSION="1.2"; # 11.02.2014 Spell checking checks first names
+$VERSION="2.0"; # 21.01.2019 Cleaning up the code
+#$VERSION="1.2"; # 11.02.2014 Spell checking checks first names
 #$VERSION="1.1.4"; # 07.02.2014 No spell checking for numbers !
 #$VERSION="1.1.3"; # 06.02.2014 AdaptPolarity is now logged +  bug fix + bug fix to spellchecker
 #$VERSION="1.1.2"; # 28.01.2014 All ref to cornetto replaced by wordnet + addition of getNegativeWord
@@ -22,45 +24,57 @@ $VERSION="1.2"; # 11.02.2014 Spell checking checks first names
 #$VERSION="1.0.1"; # 23.11.2013 Improved logging for sepverbs
 #$VERSION="1.0";
 
+print $log "shallow_dutch version $VERSION loaded\n" if $log;
 1;
-
 #---------------------------------------
 
 # Location of the Hunpos Tagger
 # Halácsy, Péter, András Kornai, Csaba Oravecz (2007) HunPos - an open source trigram tagger In Proceedings of the 45th Annual Meeting of the Association for Computational Linguistics Companion Volume Proceedings of the Demo and Poster Sessions. Association for Computational Linguistics, Prague, Czech Republic, pages 209--212.
 
-$hunposlocation="$Bin/Hunpos/"; # Path of the hunpos application
-$hunpostraining="$Bin/../data/cgn+lassy_klein"; # Path of the hunpos training data
+# $hunposlocation="$Bin/../Hunpos/"; # Path of the hunpos application
+# $hunpostraining="$Bin/../data/cgn+lassy_klein"; # Path of the hunpos training data
 
 #---------------------------------------
 
 # Location of compounding info for separable verbs
 # Vandeghinste, V. (2002). Lexicon Optimization: Maximizing Lexical Coverage in Speech Recognition through Automated Compounding. In M. Rodríguez and C. Araujo (eds.), Proceedings of the 3rd International Conference on Language Resources and Evaluation (LREC). European Language Resources Association. Las Palmas, Spain. 
 
-tie %lexicon,"DB_File","$Bin/../data/total.freqs.db"; # Location of the frequency lexicon (Berkeley)
-tie %headmodsolo,"DB_File","$Bin/../data/ModHead.freqs.db"; # Location of the database containing frequency information about heads and modifiers in compound nouns (Berkeley)
-tie %difmod,"DB_File","$Bin/../data/DifModsPerHead.db"; # Location of the database containing info on how many different mods were found per head (Berkeley)
-$compoundprobthreshold=0.05; # Cf Vandeghinste (2002) for more info
-
-        # P(stroopsmeren)=0.049
-        # P(doorgeef)=0.0028
-
-#---------------------------------------
-
-# Lemma database extracted from CGN and Lassy
-tie %LEMMAS,"DB_File","$Bin/../data/lemmas.db";
-
-# Opentaal lexicon
-tie %SPELLCHECKLEX,"DB_File","$Bin/../data/spellchecklex.db";
-
-# Firstnames lexicon
-tie %FIRSTNAMES,"DB_File","$Bin/../data/firstnames.db"; # List of all first names of all people living in Belgium in 2009 occuring more than once
-
-$maxlengthwordinspellcheck=30;
+# tie %lexicon,"DB_File","$Bin/../data/total.freqs.db"; # Location of the frequency lexicon (Berkeley)
+# tie %headmodsolo,"DB_File","$Bin/../data/ModHead.freqs.db"; # Location of the database containing frequency information about heads and modifiers in compound nouns (Berkeley)
+# tie %difmod,"DB_File","$Bin/../data/DifModsPerHead.db"; # Location of the database containing info on how many different mods were found per head (Berkeley)
+# $compoundprobthreshold=0.05; # Cf Vandeghinste (2002) for more info
+# 
+#         # P(stroopsmeren)=0.049
+#         # P(doorgeef)=0.0028
+# 
+# #---------------------------------------
+# 
+# # Lemma database extracted from CGN and Lassy
+# tie %LEMMAS,"DB_File","$Bin/../data/lemmas.db";
+# 
+# # Opentaal lexicon
+# tie %SPELLCHECKLEX,"DB_File","$Bin/../data/spellchecklex.db";
+# 
+# # Firstnames lexicon
+# tie %FIRSTNAMES,"DB_File","$Bin/../data/firstnames.db"; # List of all first names of all people living in Belgium in 2009 occuring more than once
+# 
+# $maxlengthwordinspellcheck=30;
 
 #---------------------------------------
 package message;
 #---------------------------------------
+
+sub taglemmatize {
+	 my ($pkg)=@_;
+	 my $log=$pkg->{logfile};
+	 print $log "\n\nShallow Linguistic Analysis\n-------------------------------\n" if $log;
+	 $pkg->tokenize; 
+	 $pkg->tag; 
+	 $pkg->detectSentences; 
+	 $pkg->findSeparableVerbs; 
+	 $pkg->lemmatize;
+	 $pkg->showInLog;
+}
 
 sub findSeparableVerbs {
     my ($pkg)=@_;
@@ -78,22 +92,26 @@ sub findSeparableVerbs {
 sub tag {
     my ($pkg)=@_;
     my $stamp=time.$main::sessionid;
-    my $log=$pkg->{logfile};
-    open (TMP,">$main::tempfilelocation/$stamp");
+#     my $log=$pkg->{logfile};
+#     print $log "\nPart of Speech Tagging\n" if $log;
+    open (TMP,">$main::tempfilelocation/$stamp") or die;
     my $words=$pkg->{words};
     foreach (@$words) {
     	$token=$_->{token};
     	print TMP "$token\n";
     }
     close TMP;
-    `$main::hunposlocation/hunpos-tag $main::hunpostraining < $main::tempfilelocation/$stamp > $main::tempfilelocation/$stamp.tmp`;
-    unlink "$main::tempfilelocation/$stamp";
+    my $systemcommand="$main::hunposlocation/hunpos-tag $main::hunpostraining < $main::tempfilelocation/$stamp > $main::tempfilelocation/$stamp.tmp";
+#     print $log "$systemcommand\n" if $log;
+    `$systemcommand`;
+    unlink "$main::tempfilelocation/$stamp" or print $log "\nCannot delete $main::tempfilelocation/$stamp.tmp\n" if $log;
     open (TMP,"$main::tempfilelocation/$stamp.tmp");
     my @words;
     while (<TMP>) {
     	chomp;
 	($tok,$tag)=split(/\t/,$_);
 	if (defined($tok)) {
+# 	    print $log "\t$tok\t$tag\n" if $log;
 	    $word=word->new(logfile,$pkg->{logfile},
 			    target,$pkg->{target},
 			    token,$tok,
@@ -102,8 +120,9 @@ sub tag {
 	    push(@words,$word);
 	}
     }
-    unlink "$main::tempfilelocation/$stamp.tmp" || print "\nCannot delete $main::tempfilelocation/$stamp.tmp\n";
+    unlink "$main::tempfilelocation/$stamp.tmp" or print $log "\nCannot delete $main::tempfilelocation/$stamp.tmp\n" if $log;
     $pkg->{words}=[@words];
+#     print $log "--------------\n" if $log;
 }
 
 #---------------------------------------
@@ -127,20 +146,24 @@ sub findSeparableVerbs {
 	}
     }
     my ($freq,$topfreq,$topcomp,$toppv,$topparticle);
-    my $log=$pkg->{logfile};
+    my $log=$pkg->{logfile} if $log;
     # COMBINE PVS WITH PARTICLES AND CHECK FREQ IN CORPUS
     foreach (@pvs) {
 	foreach $particle (@particles) {
 	    $compound=$particle->{token}.$_->{token};
+	    print $log "\tHypothesis: $compound"  if $log;
 	    $freq=$main::lexicon{$compound};
 	    chomp($freq);
 	    if ($freq>$topfreq) {
+
 		# CHECK IF TOP WORD IS MORE PROBABLE THAN SEPARATE WORDS
 		my $result=$main::headmodsolo{$_->{token}};
 		my ($ashead,$asmod,$solo)=split(/\t/,$result);
 		my $difmods=$main::difmod{$_->{token}};
 		my $compoundprob=$freq/$ashead * (1- $difmods/$ashead);
+		print $log "\t\tEstimated Probability: $compoundprob ";
 		if ($compoundprob > $main::compoundprobthreshold) {
+		    print $log "> threshold $main::compoundprobthreshold\n" if $log;
 		    $topfreq=$freq;
 		    $topcomp=$compound;
 		    $toppv=$_;
@@ -149,16 +172,19 @@ sub findSeparableVerbs {
 		    $topparticle=$particle;
 		}
 		else {
-		}
+		    print $log "<= threshold $main::compoundprobthreshold\n" if $log;
+		    }
 	    }
 	    else {
 		unless ($freq) {
 		    $freq=0;
+		print $log ".  Freq $freq lower than previous sepverbs or zero\n" if $log;
 		}
 	    }
 	}
     }
     if ($toppv) {
+	print $log "\t$topcomp identified as separable verb: merging\n" if $log;
 	# CREATE COMPOUND WORD 
 	$toppv->{token}=$topcomp;
 	# AND ADAPT LIST OF WORDS
@@ -210,7 +236,9 @@ sub adaptPolarity {
 	# Adapt polarity of word
 	my $headtoken=$head->{token};
 	$head->{polarity}=$negword;
-	return 1;
+        print $log "Negative word 'niet' detected and removed\n" if $log;
+        print $log "Polarity of '$headtoken' adapted\n" if $log;
+ 	return 1;
     }
     return undef;
 }
@@ -243,20 +271,6 @@ sub getNegativeWord {
     return $negword;
 }
 
-sub endOfSentence {
-    my ($pkg)=@_;
-    if (($pkg->{tag}) &&
-	($pkg->{tag} eq 'LET()') &&
-	($pkg->{token}=~/[\.!\?]/)) {
-	return 1;
-    }	
-    elsif ($pkg->{token}=~/[\.!\?]/) {
-	return 1;
-    }
-    else {
-	return undef;
-    }
-}
 
 sub lemmatize {
     my ($pkg)=@_;

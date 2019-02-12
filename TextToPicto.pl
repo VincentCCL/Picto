@@ -93,12 +93,14 @@ chomp($in);
 $sessionid=shift(@ARGV);
 $message=message->new(text,$in,
 		      target,$targetlanguage,
-		      logfile,$log);
+		      logfile,$log,
+		      source,$sourcelanguage);
 $message->taglemmatize; # Improvement 2: Syntactic simplification and temporality detection
 
 # `rm -rf $Bin/../AlpinoOutputDirectory$timestamp`; # DIT HOORT HIER NIET THUIS
 $message->addSynsets;
-$message->CornettoWsd if $wsdoption eq 'on'; # Improvement #3: Word sense disambiguation
+$message->wsd if $wsdoption eq 'on';
+#$message->CornettoWsd if $wsdoption eq 'on'; # Improvement #3: Word sense disambiguation
 $message->addPictoPaths($targetlanguage);
 $message->$outputmode;
 #---------------------------------------

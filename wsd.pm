@@ -7,7 +7,8 @@
 # Date: 14.07.2016
 
 #---------------------------------------
-my $VERSION="0.1";
+$VERSION="0.2"; # 08.02.2019 VV. Making the whole thing more language independent
+#my $VERSION="0.1";
 #---------------------------------------
 
 # Implementation of the word sense disambiguation tool by Ruben Izquierdo (https://github.com/rubenIzquierdo/wsd_svm) into the Text-to-Pictograph translation pipeline 
@@ -31,28 +32,40 @@ package message;
 
 my $stamp=time.$main::sessionid;
 
-sub CornettoWsd {
+sub wsd { # LANGUAGE INDEPENDENT METHOD
+  my ($pkg)=@_;
+  my $source=$pkg->{source};
+  my $method=$source.'wsd';
+  $pkg->$method;
+}
+
+sub englishwsd {  # THESE ARE NOT IMPLEMENTED (YET)
+}
+sub spanishwsd { # THESE ARE NOT IMPLEMENTED (YET)
+}
+########## DUTCH  ##################
+#sub CornettoWsd {
+sub dutchwsd {
     my ($pkg)=@_;
     $pkg->createNewTextAndLabelObjects;
-    if($main::wsdoption eq "on"){
+    #if($main::wsdoption eq "on"){
 	    $pkg->generateWsdInputFile;
 	    $pkg->useWsdTool;
 	    $pkg->convertWsd;
 	    $pkg->addWsdScores;	
-    }
+    #}
 }
 
 sub createNewTextAndLabelObjects {
   my ($pkg)=@_; 
   my $i=0;
   my @arrayofsentences;
-  my $target=$pkg->{target};
+#   my $target=$pkg->{target};
   my $sentences=$pkg->{sentences};
-  foreach $sentence(@$sentences){
-	$sentence->{sentenceid}=$i;
-	$sentence->{target}=$target;
-	$words=$sentence->{words};
-	my $j=0;
+  foreach (@$sentences){
+	$_->{sentenceid}=$i;
+# 	$sentence->{target}=$target;
+	my $words=$_->{words};
 	my @arrayofwords;
 	foreach $word(@$words){
 		$word->{wordid}=$j;
@@ -61,7 +74,7 @@ sub createNewTextAndLabelObjects {
 	}	
   	$i++;
 	$period=".";
-        push(@arrayofwords,$period);
+        #push(@arrayofwords,$period);
 	push(@arrayofsentences,@arrayofwords);
   }
 $pkg->{newtext}="@arrayofsentences"; 
@@ -70,28 +83,39 @@ $pkg->{newtext}="@arrayofsentences";
 sub generateWsdInputFile{ 
     my ($pkg)=@_;
     my $message=$pkg->{newtext};
-    my $pictolanguage=$main::targetlanguage;
-    open (WSDINPUT,">$main::wsdinput$stamp-$pictolanguage.txt");
+    my $pictolanguage=$pkg->{target};
+    my $log=$pkg->{logfile};
+    print $log "Creating WSD Inputfile $main::wsdinput$stamp-$pictolanguage.txt: \n" if $log;
+    open (WSDINPUT,">$main::wsdinput$stamp-$pictolanguage.txt") or die "Can't open $main::wsdinput$stamp-$pictolanguage.txt\n";
     print WSDINPUT "$message";
+    print $log "$message\nEnd of WSD Inputfile\n" if $log;
     close WSDINPUT;
     return $pkg;
 }
 
 sub useWsdTool{
-    my $pictolanguage=$main::targetlanguage;
-    `cat $main::wsdinput$stamp-$pictolanguage.txt | python $main::wsdtool > $main::wsdoutput$stamp-$pictolanguage.txt`;  
+  my ($pkg)=@_;
+  my $log=$pkg->{logfile};
+  my $pictolanguage=$main::targetlanguage;
+  my $command="cat $main::wsdinput$stamp-$pictolanguage.txt | python $main::wsdtool > $main::wsdoutput$stamp-$pictolanguage.txt";  
+  print $log "COMMAND:\n$command\n" if $log;
+    `$command`;
     `rm -f $main::wsdinput$stamp-$pictolanguage.txt`;
 }
 
 sub convertWsd{
-    my $pictolanguage=$main::targetlanguage;
-    `perl $main::wsdconverter $main::wsdoutput$stamp-$pictolanguage.txt > $main::wsdconvertedoutput$stamp-$pictolanguage.txt`;  
+  my ($pkg)=@_;
+  my $pictolanguage=$main::targetlanguage;
+  my $log=$pkg->{logfile};
+  my $command="perl $main::wsdconverter $main::wsdoutput$stamp-$pictolanguage.txt > $main::wsdconvertedoutput$stamp-$pictolanguage.txt";  
+  print $log "COMMAND:\n$command\n" if $log;
+  `$command`;
     `rm -f $main::wsdoutput$stamp-$pictolanguage.txt`;
 }
 
 sub addWsdScores{
-    my $pictolanguage=$main::targetlanguage;
     my ($pkg)=@_;
+    my $pictolanguage=$main::targetlanguage;
     my $sentences=$pkg->{sentences};
     foreach (@$sentences){
 	my $sentenceid=$_->{sentenceid};
@@ -117,4 +141,5 @@ sub addWsdScores{
 			}
     } 		$flag;
 `rm -f $main::wsdconvertedoutput$stamp-$pictolanguage.txt`;
+ $pkg->showInLog;
 }

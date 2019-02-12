@@ -78,6 +78,20 @@ sub filterLexUnitsAccordingToPos {
 		$i--;
 		next;
 	    }
+	    if ($lupos=~/DE$/) {
+	      if ($pos=~/onz/ && $pos!~/dim/) {
+	         splice(@$lexunits,$i,1);
+	         $i--;
+	         next;
+	      }
+	    }
+	    elsif ($lupos=~/HET$/) {
+	      if ($pos=~/zijd/) {
+	        splice(@$lexunits,$i,1);
+	        $i--;
+	        next;
+	      }
+	    }
 	}
 	elsif ($lupos=~/^ADJECTIVE/) {
 	    unless ($pos=~/^ADJ/) {

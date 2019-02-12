@@ -493,10 +493,11 @@ sub buildRegularSSUBSentence{
 sub buildSSUBSentence{
 	my ($pkg,$clause,$mainclause)=@_;
 	my @syntax;
- 	my $subsentence_object=sentence->new; 
+ 	my $subsentence_object=sentence->new(logfile,$pkg->{logfile},
+ 	                                     target,$pkg->{target}); 
 	my $type=$clause->{'att'}->{'cat'}; 
 	$subsentence_object->{type}="ssub";
-	@syntax=$pkg->buildWordObjects($clause);
+	@syntax=$pkg->buildWordObjectsPerSentence($clause);
 	$subsentence_object->{syntax}=[@syntax];
 	my $allsyntaxobjects=$subsentence_object->{syntax};
 	my $index;	
@@ -552,17 +553,18 @@ sub changeClauseOrder{
 }
 
 sub buildAppSentence{
-	my ($pkg)=@_;
- 	my $subsentence_object=sentence->new; 
+	my ($pkg,$clause)=@_;
+ 	my $subsentence_object=sentence->new(logfile,$pkg->{logfile},
+ 	                                     target,$pkg->{target}); 
 	$subsentence_object->{type}="app";
-	$subsentence_object->{antecedent}=findAppositionAntecedent($clause); 
-	@syntax=$pkg->buildWordObjects($clause); 
+	$subsentence_object->{antecedent}=$pkg->findAppositionAntecedent($clause); 
+	@syntax=$pkg->buildWordObjectsPerSentence($clause); 
 	$subsentence_object->{syntax}=[@syntax];
 	return $subsentence_object;
 }
 
 sub findAppositionAntecedent{ 
-   my ($clause)=@_;
+   my ($pkg,$clause)=@_;
    my $parent=$clause->parent;
    my @siblings=$parent->children; 
    my $descendant;
@@ -589,7 +591,8 @@ sub findAppositionAntecedent{
 			tag,$descendant->{'att'}->{'postag'},
 			indexnumber,$descendant->{'att'}->{'index'},
 			transitivity,$descendant->{'att'}->{'sc'},
-			function,$descendant->{'att'}->{'rel'});
+			function,$descendant->{'att'}->{'rel'},
+			logfile,$pkg->{logfile});
 		return $word_object;
 	}
    }
@@ -597,7 +600,8 @@ sub findAppositionAntecedent{
 
 sub buildPPRESSentence{
 	my ($pkg,$clause,$mainclause)=@_;
-	my $subsentence_object=sentence->new;
+	my $subsentence_object=sentence->new(logfile,$pkg->{logfile},
+	                                     target,$pkg->{target});
 	$subsentence_object->{type}="ppres";
 	my @referees=$mainclause->descendants("node[\@rel=\"su\"]");
 	my $referee=@referees[0];
@@ -616,9 +620,10 @@ sub buildPPRESSentence{
 		tag,$head->{'att'}->{'postag'},
 		indexnumber,$head->{'att'}->{'index'},
 		transitivity,$head->{'att'}->{'sc'},
-		function,$head->{'att'}->{'rel'});
+		function,$head->{'att'}->{'rel'},
+		logfile,$pkg->{logfile});
 	$subsentence_object->{antecedent}=$head_object;		
-	@syntax=$pkg->buildWordObjects($clause); 
+	@syntax=$pkg->buildWordObjectsPerSentence($clause); 
 	$subsentence_object->{syntax}=[@syntax];
 	return $subsentence_object;
 }

@@ -231,13 +231,21 @@ sub Maxtime {
 sub externalSpellChecker {
   my ($in)=@_;
   my $externalSpellCheckerCommand="perl $Bin/SpellCorrector_$sourcelanguage.pl";
-  print $log "$externalSpellCheckerCommand \"$in\"\n" if $log;
-  print $log "\n========== EXTERNAL SPELL CHECKER LOGGING=================\n";
-  close $log;
-  my $correct=`$externalSpellCheckerCommand "$in" 2>> $logfile`;
-  open(LOG,">>:utf8",$logfile);
-  $log=\*LOG;
-  print $log "\n========== END OF EXTERNAL SPELL CHECKER LOGGING==============\n";
+  my $correct;
+  if ($log) {
+    print $log "$externalSpellCheckerCommand \"$in\"\n";
+    print $log "\n========== EXTERNAL SPELL CHECKER LOGGING=================\n"; 
+    close $log;
+    $correct=`$externalSpellCheckerCommand "$in" 2>> $logfile`;
+  }
+  else {
+    $correct=`$externalSpellCheckerCommand "$in"`;
+  }
+  if ($log) {
+    open(LOG,">>:utf8",$logfile);
+    $log=\*LOG;
+    print $log "\n========== END OF EXTERNAL SPELL CHECKER LOGGING==============\n";
+  }
   chomp $correct;
   return $correct;
 }

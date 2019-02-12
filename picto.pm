@@ -40,18 +40,10 @@ $VERSION="3.2.1"; # 23.01.2019 Bug fix in generation of complex pictos
 # Links pictogram names with synsets
 #---------------------------------------
 
-1;
 print $log "picto.pm $VERSION loaded\n" if $log;
-
-#$starttime=time;
-#$maxtime=60;  # script stops after n seconds
+1;
 
 
-#use DB_File; 
-
-# require "$Bin/sclera.pm";
-# require "$Bin/beta.pm";
-# require "$Bin/rand.pm";
 
 require "$Bin/$targetlanguage.pm";
 require "$Bin/picto_".$sourcelanguage.".pm";
@@ -83,15 +75,6 @@ sub existNegative {
 sub adaptToPolarity {
     my ($pkg,$path)=@_;
     $not=$pkg->getNot;
-#     if(($main::sourcelanguage eq "cornetto") || ($main::sourcelanguage eq "dutch")){
-# 	$not = "niet";
-#     }
-#     elsif($main::sourcelanguage eq "english"){
-# 	$not = "no";
-#     }
-#     elsif($main::sourcelanguage eq "spanish"){
-# 	$not = "no";
-#     }
     my $db=$pkg->{wordnetdb};
     if (my $polarity=$pkg->{polarity}) {
 	my $negdisplay=image->new(filename,$pkg->{target}->negativePicto,
@@ -208,36 +191,37 @@ sub stringify {
     return join('/',@string);
 }
     
-# sub printInLogfile {
-#     my ($pkg)=@_;
-#     my $log=$pkg->{logfile};
-#     my $display=$pkg->{display};
-#     print $log "\tPathweight: ".$pkg->weight."\n" if $log;
-#     if ($display) {
-#         print $log "\tDisplay: " if $log;
-#         foreach (@$display) {
-#             print $log $_->getContent.", " if $log;
-#         }
-#         print $log "\n" if $log;
-#     }
-#     else {
-#         print $log "\tDisplay: No words yet\n" if $log;
-#     }
-#     my $wordstoprocess=$pkg->{wordstoprocess};
-#     print $log "\tWords to process: " if $log;
-#     foreach (@$wordstoprocess) {
-#         my $token=$_->{token};
-#         print $log "$token, " if $log;
-#     }
-#     print $log "\n" if $log;
-# }
+ sub printInLogfile {
+     my ($pkg)=@_;
+     my $log=$pkg->{logfile};
+     unless ($log) { return;}
+     my $display=$pkg->{display};
+     print $log "\tPathweight: ".$pkg->weight."\n" if $log;
+     if ($display) {
+         print $log "\tDisplay: " if $log;
+         foreach (@$display) {
+             print $log $_->getContent.", " if $log;
+         }
+         print $log "\n" if $log;
+     }
+     else {
+         print $log "\tDisplay: No words yet\n" if $log;
+     }
+     my $wordstoprocess=$pkg->{wordstoprocess};
+     print $log "\tWords to process: " if $log;
+     foreach (@$wordstoprocess) {
+         my $token=$_->{token};
+         print $log "$token, " if $log;
+     }
+     print $log "\n" if $log;
+ }
 
 sub extend {
     &main::Maxtime;
     my ($pkg)=@_;
-#     my $log=$pkg->{logfile};
-#     print $log "\nExtending path\n";
-#     $pkg->printInLogfile;
+     my $log=$pkg->{logfile};
+     print $log "\nExtending path\n" if $log;
+     $pkg->printInLogfile;
     my @newpaths;
     my $oldwordstoprocess=$pkg->{wordstoprocess};
     if (my $current=shift(@$oldwordstoprocess)) {
@@ -248,8 +232,8 @@ sub extend {
 						       $complexes->[$i],
 						       [@wordstoprocess]);
 		    $newpath->spliceWordWithDep($complexes->[$i]);
-# 		    print $log "  Extended path with complex picto: \n";
-#                     $newpath->printInLogfile;
+ 		    print $log "  Extended path with complex picto: \n" if $log;
+                     $newpath->printInLogfile;
                     push(@newpaths,$newpath);
 		}
 	    }
@@ -259,8 +243,8 @@ sub extend {
 		$newpath=$pkg->extendWithPicto(	"single",$current,
 						$single,
 						[@wordstoprocess]);
-		#print $log "  Extend path with single picto:\n";
-#                 $newpath->printInLogfile;
+                print $log "  Extend path with single picto:\n" if $log;
+                 $newpath->printInLogfile;
                 push(@newpaths,$newpath);
 	    }
 	}
@@ -273,8 +257,8 @@ sub extend {
 							   [@wordstoprocess]);
 			$newpath->spliceWordWithHead($asdependents->[$i]);
 			$newpath->spliceWordWithDep($asdependents->[$i]); 
-			#print $log "  Extend path with complex\n";
-#                         $newpath->printInLogfile;
+                         print $log "  Extend path with complex\n";
+                         $newpath->printInLogfile;
                         push(@newpaths,$newpath);
 		    }
 		}
@@ -282,7 +266,7 @@ sub extend {
 	}
 	unless (@newpaths) {
 	    $newpath=$pkg->extendNoPicto($current);
-	    #print $log "  Extend path with word (no picto found)\n";
+	    print $log "  Extend path with word (no picto found)\n" if $log;
             if ($log) {$newpath->printInLogfile}
             push(@newpaths,$newpath);
 	}
@@ -458,6 +442,7 @@ sub addPictoPaths {
     my $log=$pkg->{logfile};
     print $log "\n\nmessage::addPictoPaths\n-------------------------------\n" if $log;
     $pkg->addPictos;
+    $pkg->showInLog;
     $pkg->searchArgMax;	
     $pkg->showInLog;
 }

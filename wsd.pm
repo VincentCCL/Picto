@@ -24,7 +24,7 @@ our $wsdinput="$Bin/../tmp/wsd/wsdinput";
 our $wsdoutput="$Bin/../tmp/wsd/wsdoutput";
 our $wsdconvertedoutput="$Bin/../tmp/wsd/wsdconvertedoutput";
 our $wsdtool="$Bin/../DutchWSD/svm_wsd-master/dsc_wsd_tagger.py"; 
-our $wsdconverter="$Bin/../DutchWSD/svm_wsd-master/TwigDSC.pl";
+our $wsdconverter="$Bin/TwigDutchSemCor.pl";
 
 #---------------------------------------
 package message;
@@ -107,7 +107,7 @@ sub convertWsd{
   my ($pkg)=@_;
   my $pictolanguage=$main::targetlanguage;
   my $log=$pkg->{logfile};
-  my $command="perl $main::wsdconverter $main::wsdoutput$stamp-$pictolanguage.txt > $main::wsdconvertedoutput$stamp-$pictolanguage.txt";  
+  my $command="perl $main::wsdconverter -V $main::database -W $main::host -X $main::port -Y $main::user -Z $main::pwd $main::wsdoutput$stamp-$pictolanguage.txt > $main::wsdconvertedoutput$stamp-$pictolanguage.txt";  
   print $log "COMMAND:\n$command\n" if $log;
   `$command`;
     `rm -f $main::wsdoutput$stamp-$pictolanguage.txt`;

@@ -126,15 +126,15 @@ sub LoadDefaultValues {
  $verbose{'r'}="-r WSD weight";
 
  # database parameters
- $default{'g'}="cornetto3";
+ $default{'g'}="";
  $verbose{'g'}="-g Picto database name";
- $default{'j'}="gobelijn";
+ $default{'j'}="";
  $verbose{'j'}="-j Picto database host";
- $default{'m'}="5432";
+ $default{'m'}="";
  $verbose{'m'}="-m Picto database port";
- $default{'u'}="vincent";
+ $default{'u'}="";
  $verbose{'u'}="-u Picto database user";
- $default{'q'}="vincent";
+ $default{'q'}="";
  $verbose{'q'}="-q Picto database password";
 }
 

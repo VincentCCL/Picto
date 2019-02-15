@@ -11,19 +11,20 @@ $VERSION='1.0'; # Functions taken over from synset.pm to remove language depende
 
 #---------------------------------------------
 
-1;
 print $log "synset_dutch.pm loaded\n" if $log;
-#---------------------------------------
-package cornetto;
-#---------------------------------------
+1;
 
-@ISA=("wordnet");
-
-$database="$main::database";
-$host="$main::host";
-$port="$main::port";
-$user="$main::user";
-$pwd="$main::pwd";
+#---------------------------------------
+# package cornetto;
+# #---------------------------------------
+# 
+# @ISA=("wordnet");
+# 
+# $database="$main::database";
+# $host="$main::host";
+# $port="$main::port";
+# $user="$main::user";
+# $pwd="$main::pwd";
 
 #---------------------------------------
 package object;
@@ -32,11 +33,11 @@ package object;
 sub openWordnet {
     my ($pkg)=@_;
     unless ($pkg->{wordnetdb}) {
-	my $db=DBI::db->new($cornetto::database,
-			    $cornetto::host,
-			    $cornetto::port,
-			    $cornetto::user,
-			    $cornetto::pwd);
+	my $db=DBI::db->new($main::database,
+			    $main::host,
+			    $main::port,
+			    $main::user,
+			    $main::pwd);
 	$pkg->{wordnetdb}=$db;
     }
 }

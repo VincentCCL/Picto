@@ -51,17 +51,13 @@ $VERSION="4.0";
 
 #---------------------------------------
 
-use Getopt::Std;  
 use FindBin qw($Bin); 
 use Encode qw(decode);
-# use File::Path qw( rmtree ); ## WHAT IS THIS?
 require "$Bin/GenericFunctions.pm";
 
 #---------------------------------------
 
 
-getopt("abcdefghijklmnopqrstuvwz",\%opts);
-processOptions(%opts);
 
 
 # Libraries 

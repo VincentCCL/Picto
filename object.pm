@@ -6,7 +6,8 @@
 
 #---------------------------------------
 
-$VERSION="1.1.4"; # Make two tempfilelocations so it is possible to run a Beta-based script and a Sclera-based script at the same time for parameter tuning
+$VERSION="1.1.5"; # Moved tmpfilelocations to GenericFunctions.pm
+#$VERSION="1.1.4"; # Make two tempfilelocations so it is possible to run a Beta-based script and a Sclera-based script at the same time for parameter tuning
 #$VERSION="1.1.3"; # 06.02.14 Adaptated logging
 #$VERSION="1.1.2"; # 28.01.14 All ref to cornetto replaced by wordnet
 #$VERSION="1.1.1"; # 05.12.13 DetectSentences made more robust
@@ -34,18 +35,18 @@ use DB_File;
 print $log "object.pm version $VERSION loaded\n" if $log;
 #---------------------------------------
 
-if($main::targetlanguage eq 'sclera'){
-	$tempfilelocation="$Bin/../tmp/sclera/";
-	print $log "tempfilelocation: $tempfilelocation\n" if $log;
-}
-elsif($main::targetlanguage eq 'beta'){
-	$tempfilelocation="$Bin/../tmp/beta/";
-	print $log "tempfilelocation: $tempfilelocation\n" if $log;
-}
-else{
-	$tempfilelocation="$Bin/../tmp/";
-	print $log "tempfilelocation: $tempfilelocation\n" if $log;
-}
+# if($main::targetlanguage eq 'sclera'){
+# 	$tempfilelocation="$Bin/../tmp/sclera/";
+# 	print $log "tempfilelocation: $tempfilelocation\n" if $log;
+# }
+# elsif($main::targetlanguage eq 'beta'){
+# 	$tempfilelocation="$Bin/../tmp/beta/";
+# 	print $log "tempfilelocation: $tempfilelocation\n" if $log;
+# }
+# else{
+# 	$tempfilelocation="$Bin/../tmp/";
+# 	print $log "tempfilelocation: $tempfilelocation\n" if $log;
+# }
 
 #---------------------------------------
 package object;

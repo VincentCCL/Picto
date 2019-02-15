@@ -1,12 +1,24 @@
 # GenericFunctions.pm
 1; #-------------------
 
+$VERSION="1.0"; # Initial version
 # Default and configuration values
 
+use Getopt::Std;  
 &LoadDefaultValues;
+getopt("abcdefghijklmnopqrstuvwz",\%opts);
+processOptions(%opts);
 &LoadConfigPaths;
+1;
 
 sub LoadConfigPaths {
+ # Tempfile location
+ $tempfilelocation="$Bin/../tmp/picto/";
+ print $log "tempfilelocation: $tempfilelocation\n" if $log;
+ unless (-e $tempfilelocation) {
+    `mkdir $tempfilelocation`;
+    print $log "$tempfilelocation did not exist. Made a new dir\n" if $log;
+ }
  # Location of the Hunpos Tagger
  # Halácsy, Péter, András Kornai, Csaba Oravecz (2007) HunPos - an open source trigram tagger In Proceedings of the 45th Annual Meeting of the Association for Computational Linguistics Companion Volume Proceedings of the Demo and Poster Sessions. Association for Computational Linguistics, Prague, Czech Republic, pages 209--212.
  $hunposlocation="$Bin/../Hunpos/"; # Path of the hunpos application

@@ -22,6 +22,12 @@ use DBI;
 
 sub new {
     my ($pkg,$dbasename,$dbhost,$dbport,$dbuser,$dbpwd)=@_;
+    unless ($dbasename=~/./ and $dbhost=~/./ and $dbport=~/./ and $dbpwd=~/./) {
+      $log=$pkg->{logfile};
+      print $log "Database settings not properly defined in GenericFunctions.pm\n" if $log;
+      print STDERR "Database settings not properly defined in GenericFunctions.pm\n";
+      die;
+    }
     my $dbh;
     unless ($dbh=DBI->connect("DBI:Pg:dbname=$dbasename;host=$dbhost;port=$dbport","$dbuser","$dbpwd")) {
 	die $DBI::errstr;

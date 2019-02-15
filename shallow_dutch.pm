@@ -25,15 +25,11 @@ $VERSION="2.0"; # 21.01.2019 Cleaning up the code
 #$VERSION="1.0";
 
 print $log "shallow_dutch version $VERSION loaded\n" if $log;
-1;
 #---------------------------------------
 
-# Location of the Hunpos Tagger
-# Halácsy, Péter, András Kornai, Csaba Oravecz (2007) HunPos - an open source trigram tagger In Proceedings of the 45th Annual Meeting of the Association for Computational Linguistics Companion Volume Proceedings of the Demo and Poster Sessions. Association for Computational Linguistics, Prague, Czech Republic, pages 209--212.
-
-# $hunposlocation="$Bin/../Hunpos/"; # Path of the hunpos application
-# $hunpostraining="$Bin/../data/cgn+lassy_klein"; # Path of the hunpos training data
-
+$hunpostraining="$Bin/hunpos_data/cgn+lassy_klein"; # Path to the hunpos model
+print $log "Tagger model location: $hunpostraining\n" if $log;
+1;
 #---------------------------------------
 
 # Location of compounding info for separable verbs

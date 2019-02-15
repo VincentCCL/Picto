@@ -15,7 +15,7 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: beta; Type: TABLE; Schema: public; Owner: vincent; Tablespace: 
+-- Name: beta; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE beta (
@@ -32,10 +32,8 @@ CREATE TABLE beta (
 );
 
 
-ALTER TABLE public.beta OWNER TO vincent;
-
 --
--- Data for Name: beta; Type: TABLE DATA; Schema: public; Owner: vincent
+-- Data for Name: beta; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY beta (lemma, synset, relation, head, headrel, dependent, deprel, antonym, number, able) FROM stdin;
@@ -3072,28 +3070,28 @@ niemand	n_r-519964	synonym	\N	\N	\N	\N	\N	\N	ferre
 
 
 --
--- Name: depxxx; Type: INDEX; Schema: public; Owner: vincent; Tablespace: 
+-- Name: depxxx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE INDEX depxxx ON beta USING btree (dependent);
 
 
 --
--- Name: hdxxx; Type: INDEX; Schema: public; Owner: vincent; Tablespace: 
+-- Name: hdxxx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE INDEX hdxxx ON beta USING btree (head);
 
 
 --
--- Name: lemmaxxx; Type: INDEX; Schema: public; Owner: vincent; Tablespace: 
+-- Name: lemmaxxx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE INDEX lemmaxxx ON beta USING btree (lemma);
 
 
 --
--- Name: ssxxx; Type: INDEX; Schema: public; Owner: vincent; Tablespace: 
+-- Name: ssxxx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE INDEX ssxxx ON beta USING btree (synset);

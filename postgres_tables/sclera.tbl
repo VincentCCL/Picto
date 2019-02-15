@@ -15,7 +15,7 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: sclera; Type: TABLE; Schema: public; Owner: vincent; Tablespace: 
+-- Name: sclera; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE sclera (
@@ -33,10 +33,8 @@ CREATE TABLE sclera (
 );
 
 
-ALTER TABLE public.sclera OWNER TO vincent;
-
 --
--- Data for Name: sclera; Type: TABLE DATA; Schema: public; Owner: vincent
+-- Data for Name: sclera; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY sclera (lemma, synset, relation, head, headrel, dependent, deprel, antonym, number, lemma_english, able) FROM stdin;
@@ -6283,28 +6281,28 @@ acne	d_n-24689	synonym	\N	\N	\N	\N	\N	\N	\N	ferre
 
 
 --
--- Name: dependentx; Type: INDEX; Schema: public; Owner: vincent; Tablespace: 
+-- Name: dependentx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE INDEX dependentx ON sclera USING btree (dependent);
 
 
 --
--- Name: headx; Type: INDEX; Schema: public; Owner: vincent; Tablespace: 
+-- Name: headx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE INDEX headx ON sclera USING btree (head);
 
 
 --
--- Name: lemmaxx; Type: INDEX; Schema: public; Owner: vincent; Tablespace: 
+-- Name: lemmaxx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE INDEX lemmaxx ON sclera USING btree (lemma);
 
 
 --
--- Name: synsetxxx; Type: INDEX; Schema: public; Owner: vincent; Tablespace: 
+-- Name: synsetxxx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE INDEX synsetxxx ON sclera USING btree (synset);

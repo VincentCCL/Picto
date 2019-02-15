@@ -15,7 +15,7 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: beta_dictionary; Type: TABLE; Schema: public; Owner: vincent; Tablespace: 
+-- Name: beta_dictionary; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE beta_dictionary (
@@ -26,10 +26,8 @@ CREATE TABLE beta_dictionary (
 );
 
 
-ALTER TABLE public.beta_dictionary OWNER TO vincent;
-
 --
--- Data for Name: beta_dictionary; Type: TABLE DATA; Schema: public; Owner: vincent
+-- Data for Name: beta_dictionary; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY beta_dictionary (token, lemma, tag, picto) FROM stdin;
@@ -288,6 +286,27 @@ springkasteel	\N	\N	luchtkussen.png
 \N	les	\N	klas.png
 \N	klas	\N	klas.png
 \.
+
+
+--
+-- Name: lemmabetadic; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX lemmabetadic ON beta_dictionary USING btree (lemma);
+
+
+--
+-- Name: tagbetadic; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tagbetadic ON beta_dictionary USING btree (tag);
+
+
+--
+-- Name: tokenbetadic; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tokenbetadic ON beta_dictionary USING btree (token);
 
 
 --

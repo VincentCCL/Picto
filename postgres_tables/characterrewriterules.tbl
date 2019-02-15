@@ -15,7 +15,7 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: characterrewriterules; Type: TABLE; Schema: public; Owner: leen; Tablespace: 
+-- Name: characterrewriterules; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE characterrewriterules (
@@ -25,10 +25,8 @@ CREATE TABLE characterrewriterules (
 );
 
 
-ALTER TABLE public.characterrewriterules OWNER TO leen;
-
 --
--- Data for Name: characterrewriterules; Type: TABLE DATA; Schema: public; Owner: leen
+-- Data for Name: characterrewriterules; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY characterrewriterules (source, target, prob) FROM stdin;
@@ -2202,7 +2200,7 @@ wie	wee	1
 
 
 --
--- Name: sourceid; Type: INDEX; Schema: public; Owner: leen; Tablespace: 
+-- Name: sourceid; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE INDEX sourceid ON characterrewriterules USING btree (source);

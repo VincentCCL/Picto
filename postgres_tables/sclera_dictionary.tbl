@@ -15,7 +15,7 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: sclera_dictionary; Type: TABLE; Schema: public; Owner: vincent; Tablespace: 
+-- Name: sclera_dictionary; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE sclera_dictionary (
@@ -26,10 +26,8 @@ CREATE TABLE sclera_dictionary (
 );
 
 
-ALTER TABLE public.sclera_dictionary OWNER TO vincent;
-
 --
--- Data for Name: sclera_dictionary; Type: TABLE DATA; Schema: public; Owner: vincent
+-- Data for Name: sclera_dictionary; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY sclera_dictionary (token, lemma, tag, picto) FROM stdin;
@@ -684,21 +682,21 @@ springkasteel	\N	\N	springkasteel-2.png
 
 
 --
--- Name: scleradictx; Type: INDEX; Schema: public; Owner: vincent; Tablespace: 
+-- Name: scleradictx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE INDEX scleradictx ON sclera_dictionary USING btree (token);
 
 
 --
--- Name: scleradictxx; Type: INDEX; Schema: public; Owner: vincent; Tablespace: 
+-- Name: scleradictxx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE INDEX scleradictxx ON sclera_dictionary USING btree (lemma);
 
 
 --
--- Name: scleradictxxx; Type: INDEX; Schema: public; Owner: vincent; Tablespace: 
+-- Name: scleradictxxx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE INDEX scleradictxxx ON sclera_dictionary USING btree (tag);

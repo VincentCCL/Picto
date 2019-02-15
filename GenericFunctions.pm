@@ -19,12 +19,12 @@ sub LoadConfigPaths {
     `mkdir -p $tempfilelocation`;
     print $log "$tempfilelocation did not exist. Made a new dir\n" if $log;
  }
- # Location of the Hunpos Tagger
+ # Location of the Hunpos Tagger used in shallow processing
  # Halácsy, Péter, András Kornai, Csaba Oravecz (2007) HunPos - an open source trigram tagger In Proceedings of the 45th Annual Meeting of the Association for Computational Linguistics Companion Volume Proceedings of the Demo and Poster Sessions. Association for Computational Linguistics, Prague, Czech Republic, pages 209--212.
  $hunposlocation="$Bin/../Hunpos/"; # Path of the hunpos application
  print $log "Tagger location: $hunposlocation\n" if $log;
- $hunpostraining="$Bin/../data/cgn+lassy_klein"; # Path of the hunpos training data
- print $log "Tagger data location: $hunpostraining\n" if $log;
+#  $hunpostraining="$Bin/data/cgn+lassy_klein"; # Path of the hunpos training data
+#  print $log "Tagger data location: $hunpostraining\n" if $log;
 
  # Location of compounding info for separable verbs
  # Vandeghinste, V. (2002). Lexicon Optimization: Maximizing Lexical Coverage in Speech Recognition through Automated Compounding. In M. Rodríguez and C. Araujo (eds.), Proceedings of the 3rd International Conference on Language Resources and Evaluation (LREC). European Language Resources Association. Las Palmas, Spain. 

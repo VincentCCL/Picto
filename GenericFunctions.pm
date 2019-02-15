@@ -16,7 +16,7 @@ sub LoadConfigPaths {
  $tempfilelocation="$Bin/../tmp/picto/";
  print $log "tempfilelocation: $tempfilelocation\n" if $log;
  unless (-e $tempfilelocation) {
-    `mkdir $tempfilelocation`;
+    `mkdir -p $tempfilelocation`;
     print $log "$tempfilelocation did not exist. Made a new dir\n" if $log;
  }
  # Location of the Hunpos Tagger

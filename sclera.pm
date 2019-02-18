@@ -24,7 +24,7 @@ package sclera;
 @ISA=("picto");
 
 sub getPictoDirs {
-    return ("$main::Bin/../sclera");
+  return undef;
 }
 
 sub getURL {

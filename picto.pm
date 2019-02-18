@@ -1233,7 +1233,7 @@ sub addPictoSingle { # new and shorter version (VV)
 	  $current_penalty+=$main::hyperonympenalty;
       }
     DIR:foreach $dir (@pictodirs) {
-	if (-e "$dir/".$_->[0].$extension) {
+# 	if (-e "$dir/".$_->[0].$extension) {
 	    $picto=picto->new(wordnetdb,$pkg->{wordnetdb},
 			      file,"$_->[0]".$extension,
 			      pathlength,$current_penalty,
@@ -1249,8 +1249,8 @@ sub addPictoSingle { # new and shorter version (VV)
 	    }
 	    push(@picto,$picto);
 	    last DIR;
-	}
-	next RESULT;
+# 	}
+# 	next RESULT;
     }
   }
     if (@picto) {

@@ -257,7 +257,7 @@ sub extend {
 							   [@wordstoprocess]);
 			$newpath->spliceWordWithHead($asdependents->[$i]);
 			$newpath->spliceWordWithDep($asdependents->[$i]); 
-                         print $log "  Extend path with complex\n";
+                         print $log "  Extend path with complex\n" if $log;
                          $newpath->printInLogfile;
                         push(@newpaths,$newpath);
 		    }
@@ -719,6 +719,8 @@ sub HTMLOut { # new version, checks whether image object has a url field
 		    last;
 		}
 	    }
+	    # only get here when something else didn't work
+	    print "<img src=\"$url/$filename\" $imgsize alt=\"$filename\">\n";
 	  }
 	}
 	else {

@@ -12,20 +12,8 @@ processOptions(%opts);
 1;
 
 sub LoadConfigPaths {
- # Tempfile location
- $tempfilelocation="$Bin/../tmp/picto/";
- print $log "tempfilelocation: $tempfilelocation\n" if $log;
- unless (-e $tempfilelocation) {
-    `mkdir -p $tempfilelocation`;
-    print $log "$tempfilelocation did not exist. Made a new dir\n" if $log;
- }
- # Location of the Hunpos Tagger used in shallow processing
- # Halácsy, Péter, András Kornai, Csaba Oravecz (2007) HunPos - an open source trigram tagger In Proceedings of the 45th Annual Meeting of the Association for Computational Linguistics Companion Volume Proceedings of the Demo and Poster Sessions. Association for Computational Linguistics, Prague, Czech Republic, pages 209--212.
- $hunposlocation="$Bin/../Hunpos/"; # Path of the hunpos application
- print $log "Tagger location: $hunposlocation\n" if $log;
-#  $hunpostraining="$Bin/data/cgn+lassy_klein"; # Path of the hunpos training data
-#  print $log "Tagger data location: $hunpostraining\n" if $log;
-
+  &LoadShallowProcessingConfig;
+  &LoadWSDConfig;
  # Location of compounding info for separable verbs
  # Vandeghinste, V. (2002). Lexicon Optimization: Maximizing Lexical Coverage in Speech Recognition through Automated Compounding. In M. Rodríguez and C. Araujo (eds.), Proceedings of the 3rd International Conference on Language Resources and Evaluation (LREC). European Language Resources Association. Las Palmas, Spain. 
  use DB_File;
@@ -51,6 +39,33 @@ sub LoadConfigPaths {
 
 }
 
+sub LoadShallowProcessingConfig {
+ # Shallow Processing Configuration Paths
+ our $tempfilelocation="$Bin/../tmp/picto/";
+ print $log "tempfilelocation: $tempfilelocation\n" if $log;
+ unless (-e $tempfilelocation) {
+    `mkdir -p $tempfilelocation`;
+    print $log "$tempfilelocation did not exist. Made a new dir\n" if $log;
+ }
+ # Location of the Hunpos Tagger used in shallow processing
+ # Halácsy, Péter, András Kornai, Csaba Oravecz (2007) HunPos - an open source trigram tagger In Proceedings of the 45th Annual Meeting of the Association for Computational Linguistics Companion Volume Proceedings of the Demo and Poster Sessions. Association for Computational Linguistics, Prague, Czech Republic, pages 209--212.
+ $hunposlocation="$Bin/../Hunpos/"; # Path of the hunpos application
+ print $log "Tagger location: $hunposlocation\n" if $log;
+}
+
+sub LoadWSDConfig {
+ our $wsdpath="$Bin/../tmp/wsd/";
+ print $log "wsd path: $wsdpath\n" if $log;
+ unless (-e $wsdpath) {
+    `mkdir -p $wsdpath`;
+    print $log "$wsdpath did not exist. Made a new dir\n" if $log;
+ }
+ our $wsdinput="$wsdpath/wsdinput";
+ our $wsdoutput="$wsdoatg/wsdoutput";
+ our $wsdconvertedoutput="$wsdpath/wsdconvertedoutput";
+ our $wsdtool="$Bin/../DutchWSD/svm_wsd-master/dsc_wsd_tagger.py"; 
+ our $wsdconverter="$Bin/TwigDutchSemCor.pl";
+}
 
 sub LoadDefaultValues {
  ###### DEFAULT VALUES ###############################
@@ -138,15 +153,15 @@ sub LoadDefaultValues {
  $verbose{'r'}="-r WSD weight";
 
  # database parameters
- $default{'g'}="";
+ $default{'g'}="cornetto3";
  $verbose{'g'}="-g Picto database name";
- $default{'j'}="";
+ $default{'j'}="gobelijn";
  $verbose{'j'}="-j Picto database host";
- $default{'m'}="";
+ $default{'m'}="5432";
  $verbose{'m'}="-m Picto database port";
- $default{'u'}="";
+ $default{'u'}="vincent";
  $verbose{'u'}="-u Picto database user";
- $default{'q'}="";
+ $default{'q'}="vincent";
  $verbose{'q'}="-q Picto database password";
 }
 

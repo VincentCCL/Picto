@@ -20,11 +20,11 @@ $VERSION="0.2"; # 08.02.2019 VV. Making the whole thing more language independen
 
 #Locations
 
-our $wsdinput="$Bin/../tmp/wsd/wsdinput";
-our $wsdoutput="$Bin/../tmp/wsd/wsdoutput";
-our $wsdconvertedoutput="$Bin/../tmp/wsd/wsdconvertedoutput";
-our $wsdtool="$Bin/../DutchWSD/svm_wsd-master/dsc_wsd_tagger.py"; 
-our $wsdconverter="$Bin/TwigDutchSemCor.pl";
+# our $wsdinput="$Bin/../tmp/wsd/wsdinput";
+# our $wsdoutput="$Bin/../tmp/wsd/wsdoutput";
+# our $wsdconvertedoutput="$Bin/../tmp/wsd/wsdconvertedoutput";
+# our $wsdtool="$Bin/../DutchWSD/svm_wsd-master/dsc_wsd_tagger.py"; 
+# our $wsdconverter="$Bin/TwigDutchSemCor.pl";
 
 #---------------------------------------
 package message;

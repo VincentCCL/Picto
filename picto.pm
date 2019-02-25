@@ -701,7 +701,7 @@ sub HTMLOut { # new version, checks whether image object has a url field
     if ($main::imgheigth) {
 	$imgsize.=" heigth=\"$main::imgheigth\"";
     }
-    foreach (@$display) {
+    DISPLAY:foreach (@$display) {
 	if (ref($_) eq 'image') {
 	  $filename=$_->{filename};
 	  if ($imageurl=$_->{url}) {
@@ -716,7 +716,8 @@ sub HTMLOut { # new version, checks whether image object has a url field
 		    else {
 			print "<img src=\"$dir/$filename\" $imgsize alt=\"$filename\">\n";
 		    }
-		    last;
+		    next DISPLAY;
+		    #last;
 		}
 	    }
 	    # only get here when something else didn't work

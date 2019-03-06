@@ -823,6 +823,11 @@ sub parseWithAlpinoServer {
   chomp $txt;
   $txt=~s/\n/ /g;
   my @xml=`echo $txt | nc $address`;
+  unless (@xml>0) { 
+    my $log=$pkg->{logfile};
+    print $log "Parsing didn't work.\n" if $pkg->{logfile};
+    die "Parsing didn't work. Check whether parser server host is active\n";
+  }
   $pkg->{"parse"}=join("",@xml);
   return $pkg;
 }

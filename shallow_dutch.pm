@@ -27,7 +27,7 @@ $VERSION="2.0"; # 21.01.2019 Cleaning up the code
 print $log "shallow_dutch version $VERSION loaded\n" if $log;
 #---------------------------------------
 
-$hunpostraining="$Bin/hunpos_data/cgn+lassy_klein"; # Path to the hunpos model
+our $hunpostraining="$Bin/hunpos_data/cgn+lassy_klein"; # Path to the hunpos model
 print $log "Tagger model location: $hunpostraining\n" if $log;
 1;
 #---------------------------------------

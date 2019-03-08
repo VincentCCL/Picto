@@ -49,7 +49,7 @@ sub LoadShallowProcessingConfig {
  }
  # Location of the Hunpos Tagger used in shallow processing
  # Halácsy, Péter, András Kornai, Csaba Oravecz (2007) HunPos - an open source trigram tagger In Proceedings of the 45th Annual Meeting of the Association for Computational Linguistics Companion Volume Proceedings of the Demo and Poster Sessions. Association for Computational Linguistics, Prague, Czech Republic, pages 209--212.
- $hunposlocation="$Bin/../Hunpos/"; # Path of the hunpos application
+ our $hunposlocation="$Bin/../Hunpos/"; # Path of the hunpos application
  print $log "Tagger location: $hunposlocation\n" if $log;
 }
 
@@ -61,7 +61,7 @@ sub LoadWSDConfig {
     print $log "$wsdpath did not exist. Made a new dir\n" if $log;
  }
  our $wsdinput="$wsdpath/wsdinput";
- our $wsdoutput="$wsdoatg/wsdoutput";
+ our $wsdoutput="$wsdpath/wsdoutput";
  our $wsdconvertedoutput="$wsdpath/wsdconvertedoutput";
  our $wsdtool="$Bin/../DutchWSD/svm_wsd-master/dsc_wsd_tagger.py"; 
  our $wsdconverter="$Bin/TwigDutchSemCor.pl";

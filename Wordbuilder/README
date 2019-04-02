@@ -1,0 +1,89 @@
+######################################################################
+# README for WordbuilderModule v.4				     #
+######################################################################
+
+This version of the WordbuilderModule.pm was adapted to perl v.5.8 on the
+21.08.2003. It uses all the .db files in the dbases subdirectory.
+How the WordbuiderModule was made is described in 
+Vandeghinste(2002). Lexicon Optimization: Maximizing Lexical Coverage in
+Speech Recognition through Automated Compounding. Proceedings of
+LREC2002. ELRA. Paris. A postscript version can be downloaded at
+http://www.ccl.kuleuven.ac.be/~vincent/ccl/publications.htm
+
+The dbases/ subdirectory
+========================
+In the dbases/ subdirectory there are a number of .lst files. These files
+should all be compiled into perl-accessable databases. This can be done
+using the list2dbase.pl script, with the .lst file you want to compile as
+first argument:
+perl list2dbase.pl CGN.lst
+
+This will result in a .db file with the same name as the .lst file. This
+needs to be done for each .lst file in the directory.
+
+As SingleWordSplitter has a different purpose than automated compounding,
+for which the module was orignially designed, when you want to do automated
+compounding, you need to use the noncompounds.original.lst list and convert
+it into the noncompound.db by deleting the noncompound.db and by compiling
+the noncompounds.orignial.lst into a database, and then renaming it into
+noncompounds.db.
+
+SingleWordSplitter
+==================
+The SingleWordSplitter is meant to be used with the Compressor1.X.pl
+program, which sends single words to this program to check if the word is a
+compound and can be shortened by splitting it up in a modifier and a head
+and by removing the modifier.
+It can also be used separately, by sending the word to be split up as the
+first argument, when calling the perl-script:
+
+perl SingleWordSplitter.pl 'arbeidsbureau'
+
+This will give you the following result:
+arbeids bureau  0.048903708591238
+
+Before the tab, you can see the word split up into two wordparts.If no
+splitup was possible the program returns no output. The low number at the
+end of the output is a confidence value, calculated by the
+WordbuilderModule.
+
+If words are split up, or when you are using the Compressor-module and
+words get reduced to their heads, where you don't want this reduction, 
+you have to add these words to the noncompound.lst file in the dbases/
+subdirectory, and recompile it using list2dbase.pl.
+
+wordbuilder.pl
+==============
+This script allows you to enter a number of words (word parts) and the
+system sends these word parts to the WordbuilderModule, where it is checked
+whether these word parts can be compounded into one word: if this is
+possible, the output contains the compound, the tag the compound would
+have, and a confidence value (which could be used for setting thresholds).
+
+WordbuilderModule.pm
+====================
+Call this module using 
+
+   @results=&wordbuilder(@input);
+
+with @input being an array with each element being a word part and @results
+being an array of Node objects with the following structure:
+
+ Node=HASH(0x83acc40)
+   'cgn' => 1
+   'diffmods' => 124
+   'headfreq' => 4944
+   'modfreq' => 337
+   'parts' => 2
+   'prob' => 0.048903708591238
+   'rf' => 1
+   'tag' => 'N(soort,ev,basis,onz,stan)'
+   'word' => 'arbeidsbureau'
+
+You can access any of these fields by calling e.g.
+ $word=$node->get_word();
+
+So add get_ before the fieldname and you've got the accessor. The object
+definition and accessor methods can be found in Node.pm
+
+(last update of this file 19.09.2003 by Vincent Vandeghinste)

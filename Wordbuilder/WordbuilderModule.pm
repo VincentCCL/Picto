@@ -53,14 +53,14 @@ sub wordbuilder {
 #######################################################
 
 sub file_opener {
-    tie %CGN,"DB_File","/home/pricie/vincent/Lingware/Data/Lexical/DB/CGN_for_WB.db"; 
-    tie %NONC,"DB_File","/home/pricie/vincent/Lingware/Data/Lexical/DB/noncompound.db"; 
-    tie %QUASI,"DB_File","/home/pricie/vincent/Lingware/Data/Lexical/DB/quasi.db"; 
-    tie %RF,"DB_File","/home/pricie/vincent/Lingware/Data/Lexical/DB/relfreq8.3.db"; 
-    tie %MODHEAD,"DB_File","/home/pricie/vincent/Lingware/Data/Lexical/DB/ModHead.freqs.db"; 
-    tie %TOTALFREQS,"DB_File","/home/pricie/vincent/Lingware/Data/Lexical/DB/total.freqs.db"; 
-    tie %DIFMODS,"DB_File","/home/pricie/vincent/Lingware/Data/Lexical/DB/DifModsPerHead.db"; 
-	require "/home/paco/web/picto/script/Wordbuilder/Node.pm";
+    tie %CGN,"DB_File","$Bin/data/cgn_lexicon.db"; 
+    tie %NONC,"DB_File","$Bin/data/nonsplitups.db"; 
+    tie %QUASI,"DB_File","$Bin/data/quasi.db"; 
+    tie %RF,"DB_File","$Bin/data/relfreqs8.3.db";
+    tie %MODHEAD,"DB_File","$Bin/data/ModHead.freqs.db"; 
+    tie %TOTALFREQS,"DB_File","$Bin/data/total.freqs.db"; 
+    tie %DIFMODS,"DB_File","$Bin/data/DifModsPerHead.db"; 
+	require "$Bin/Node.pm";
     #$problimit=0.001;
     @posarray=('N','ADJ','VZ','WW','VNW','TSW','BW','TW','LID','VG');
     #$rflimit=0.05;

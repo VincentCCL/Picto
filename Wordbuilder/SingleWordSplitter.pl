@@ -1,12 +1,13 @@
 #use WordbuilderModule;
-require "WordbuilderModule.pm";
+use FindBin qw($Bin);
+require "$Bin/WordbuilderModule.pm";
 use DB_File;
 use Getopt::Std;
 
-    tie %CGN,"DB_File","data/cgn_lexicon.db"; 
-    tie %NONSPLIT,"DB_File","data/nonsplitups.db"; 
-    tie %QUASI,"DB_File","data/quasi.db"; 
-    tie %lexicon,"DB_File","data/total.freqs.db";
+    tie %CGN,"DB_File","$Bin/data/cgn_lexicon.db"; 
+    tie %NONSPLIT,"DB_File","$Bin/data/nonsplitups.db"; 
+    tie %QUASI,"DB_File","$Bin/data/quasi.db"; 
+    tie %lexicon,"DB_File","$Bin/data/total.freqs.db";
 
 getopt("i",\%opts);
 unless (defined($wordsplitterpenalty2=$opts{i})) {

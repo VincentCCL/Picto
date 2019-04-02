@@ -1,0 +1,179 @@
+TEST CASES
+==========
+=====================================================
+### ZONDER SIMPLIFICATIE, ZONDER SPELL CHECK, ZONDER WSD ###
+=====================================================
+- sclera
+- 1 zin
+
+perl TextToPicto.pl -z 3600 -l logfile.log -o html -p sclera -c none 'de hond blaft.'
+
+<html>
+<img src="http://webservices.ccl.kuleuven.be/picto/sclera//hond-blaffen.png"  width="110"  heigth="110" alt="hond-blaffen.png">
+<p>
+<p>
+</html>
+=====================================================
+- sclera
+- 2 zinnen
+
+perl TextToPicto.pl -z 3600 -l logfile.log -o html -p sclera -c none 'de hond die naar de postbode blaft wordt kwaad. De postbode ook.'
+
+<html>
+<img src="http://webservices.ccl.kuleuven.be/picto/sclera//hond-blaffen.png"  width="110"  heigth="110" alt="hond-blaffen.png">
+ die <img src="http://webservices.ccl.kuleuven.be/picto/sclera//pijl-rechts.png"  width="110"  heigth="110" alt="pijl-rechts.png">
+<img src="http://webservices.ccl.kuleuven.be/picto/sclera//postbode.png"  width="110"  heigth="110" alt="postbode.png">
+ wordt <img src="http://webservices.ccl.kuleuven.be/picto/sclera//boos.png"  width="110"  heigth="110" alt="boos.png">
+<p>
+<p>
+<img src="http://webservices.ccl.kuleuven.be/picto/sclera//postbode.png"  width="110"  heigth="110" alt="postbode.png">
+ ook <p>
+<p>
+</html>
+
+=====================================================
+### ZONDER SIMPLIFICATIE, ZONDER SPELL CHECK, MET WSD ###
+=====================================================
+perl TextToPicto.pl -z 3600 -l logfile.log -b on -o html -p sclera -c none 'de hond blaft.'
+
+<html>
+<img src="http://webservices.ccl.kuleuven.be/picto/sclera//hond-blaffen.png"  width="110"  heigth="110" alt="hond-blaffen.png">
+<p>
+<p>
+</html>
+---------------------------
+perl TextToPicto.pl -z 3600 -l logfile.log -b on -o html -p beta -c none 'de pad zit op het pad.'
+
+<html>
+<img src="http://webservices.ccl.kuleuven.be/picto/beta//kikker.png"  width="110"  heigth="110" alt="kikker.png">
+<img src="http://webservices.ccl.kuleuven.be/picto/beta//zijn_ww.png"  width="110"  heigth="110" alt="zijn_ww.png">
+<img src="http://webservices.ccl.kuleuven.be/picto/beta//op.png"  width="110"  heigth="110" alt="op.png">
+<img src="http://webservices.ccl.kuleuven.be/picto/beta//weg_nw.png"  width="110"  heigth="110" alt="weg_nw.png">
+<p>
+<p>
+</html>
+---------------------------
+perl TextToPicto.pl -z 3600 -l logfile.log -b on -o html -p sclera -c none 'de pad zit op het pad.'
+
+<html>
+<img src="http://webservices.ccl.kuleuven.be/picto/sclera//kikker.png"  width="110"  heigth="110" alt="kikker.png">
+<img src="http://webservices.ccl.kuleuven.be/picto/sclera//zitten.png"  width="110"  heigth="110" alt="zitten.png">
+ op <img src="http://webservices.ccl.kuleuven.be/picto/sclera//weg.png"  width="110"  heigth="110" alt="weg.png">
+<p>
+<p>
+</html>
+
+=====================================================
+### MET SIMPLIFICATIE, ZONDER SPELL CHECK, ZONDER WSD ###
+=====================================================
+perl TextToPicto.pl -z 3600 -l logfile.log -o html -p beta -c simplify 'de hond blaft.'
+
+<html>
+<img src="http://webservices.ccl.kuleuven.be/picto/beta//hond.png"  width="110"  heigth="110" alt="hond.png">
+<img src="http://webservices.ccl.kuleuven.be/picto/beta//blaffen.png"  width="110"  heigth="110" alt="blaffen.png">
+<p>
+<p>
+</html>
+
+
+perl TextToPicto.pl -z 3600 -l logfile.log -o html -p beta -c simplify 'De hond die naar de postbode blaft wordt kwaad. De postbode ook' 
+
+<html>
+<img src="http://webservices.ccl.kuleuven.be/picto/beta//hond.png"  width="110"  heigth="110" alt="hond.png">
+<img src="http://webservices.ccl.kuleuven.be/picto/beta//worden.png"  width="110"  heigth="110" alt="worden.png">
+<img src="http://webservices.ccl.kuleuven.be/picto/beta//kwaad.png"  width="110"  heigth="110" alt="kwaad.png">
+<p>
+<p>
+<img src="http://webservices.ccl.kuleuven.be/picto/beta//hond.png"  width="110"  heigth="110" alt="hond.png">
+<img src="http://webservices.ccl.kuleuven.be/picto/beta//blaffen.png"  width="110"  heigth="110" alt="blaffen.png">
+<img src="http://webservices.ccl.kuleuven.be/picto/beta//naar.png"  width="110"  heigth="110" alt="naar.png">
+<img src="http://webservices.ccl.kuleuven.be/picto/beta//postbode.png"  width="110"  heigth="110" alt="postbode.png">
+<p>
+<p>
+<img src="http://webservices.ccl.kuleuven.be/picto/beta//postbode.png"  width="110"  heigth="110" alt="postbode.png">
+ ook <p>
+<p>
+</html>
+
+=====================================================
+### MET SIMPLIFICATIE, MET SPELL CHECK, ZONDER WSD ###
+=====================================================
+- beta
+- 1 zin
+
+perl TextToPicto.pl -e on -z 3600 -l logfile.log -o html -p beta -c simplify 'de hond blaft.'
+
+<html>
+<img src="http://webservices.ccl.kuleuven.be/picto/beta//hond.png"  width="110"  heigth="110" alt="hond.png">
+<img src="http://webservices.ccl.kuleuven.be/picto/beta//blaffen.png"  width="110"  heigth="110" alt="blaffen.png">
+<p>
+<p>
+</html>
+=====================================================
+- beta
+- 2 zinnen
+- 1e zin met relatieve bijzin
+
+perl TextToPicto.pl -e on -z 3600 -l logfile.log -o html -p beta -c simplify 'De hond die naar de postbode blaft wordt kwaad. De postbode ook'
+
+<html>
+<img src="http://webservices.ccl.kuleuven.be/picto/beta//hond.png"  width="110"  heigth="110" alt="hond.png">
+<img src="http://webservices.ccl.kuleuven.be/picto/beta//worden.png"  width="110"  heigth="110" alt="worden.png">
+<img src="http://webservices.ccl.kuleuven.be/picto/beta//kwaad.png"  width="110"  heigth="110" alt="kwaad.png">
+<p>
+<p>
+<img src="http://webservices.ccl.kuleuven.be/picto/beta//hond.png"  width="110"  heigth="110" alt="hond.png">
+<img src="http://webservices.ccl.kuleuven.be/picto/beta//blaffen.png"  width="110"  heigth="110" alt="blaffen.png">
+<img src="http://webservices.ccl.kuleuven.be/picto/beta//naar.png"  width="110"  heigth="110" alt="naar.png">
+<img src="http://webservices.ccl.kuleuven.be/picto/beta//postbode.png"  width="110"  heigth="110" alt="postbode.png">
+<p>
+<p>
+<img src="http://webservices.ccl.kuleuven.be/picto/beta//postbode.png"  width="110"  heigth="110" alt="postbode.png">
+ ook <p>
+<p>
+</html>
+=====================================================
+- rand
+- 2 zinnen
+- 1e zin met relatieve bijzin
+- 1e zin met spelfout
+
+perl TextToPicto.pl -e on -z 3600 -l logfile.log -o html -p rand -c simplify 'De hond die naar de postbode blaft wordt kwaat. De postbode ook'
+
+<html>
+<img src="http://www.pictogrammendatabank.be/wp-content/uploads/2015/12/hond.png"  width="110"  heigth="110" alt="hond.png">
+ wordt  kwaad <p>
+<p>
+<img src="http://www.pictogrammendatabank.be/wp-content/uploads/2015/12/hond.png"  width="110"  heigth="110" alt="hond.png">
+<img src="http://www.pictogrammendatabank.be/wp-content/uploads/2015/12/blaffen.png"  width="110"  heigth="110" alt="blaffen.png">
+ naar <img src="http://www.pictogrammendatabank.be/wp-content/uploads/2015/12/postbode.png"  width="110"  heigth="110" alt="postbode.png">
+<p>
+<p>
+<img src="http://www.pictogrammendatabank.be/wp-content/uploads/2015/12/postbode.png"  width="110"  heigth="110" alt="postbode.png">
+ ook <p>
+<p>
+</html>
+=====================================================
+- rand
+- text out
+- 1 complexe zin met dubbele inbedding
+
+perl TextToPicto.pl -e on -z 3600 -l logfile.log -o text -p rand -c simplify 'De man die ik zie om mee af te spreken kwam niet opdagen'
+
+echtgenoot kwam opdagen niet 
+ik zie echtgenoot 
+spreken mee 
+=====================================================
+- rand
+- json out
+- 1 complexe zin met dubbele inbedding
+
+perl TextToPicto.pl -e on -z 3600 -l logfile.log -o json -p rand -c simplify 'De man die ik zie om mee af te spreken kwam niet opdagen'
+
+{ 
+ "input" : "de man die ik zie om mee af te spreken kwam niet opdagen." ,
+ "output" : ["http://www.pictogrammendatabank.be/wp-content/uploads/2015/11//echtgenoot.png", "kwam", "opdagen", "niet", "\n", "http://www.pictogrammendatabank.be/wp-content/uploads/2015/11//", "zie", "http://www.pictogrammendatabank.be/wp-content/uploads/2015/11//echtgenoot.png", "\n", "spreken", "mee", "\n", "\n" ] 
+}
+=====================================================
+
+

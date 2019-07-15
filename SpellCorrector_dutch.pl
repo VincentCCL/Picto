@@ -4,6 +4,8 @@
 # leen@ccl.kuleuven.be 
 # Date: 14.01.2016
 
+#!/bin/bash
+
 #---------------------------------------
 
 # Spelling corrector for people with an intellectual disability, trained on WAI-NOT data
@@ -28,7 +30,7 @@ require "$Bin/GenericFunctionsSpellcheck.pm";
 
 # Parameters
 
-getopt("abcdefghijklmnopqrstuvwxyzABCDEFG",\%opts);
+getopt("abcdefghijklmnopqrstuvwxyzABCDEFGH",\%opts);
 processOptionsSpellcheck(%opts);
 
 require $objectpm;
@@ -355,14 +357,13 @@ sub performFuzzyMatch_ {
   my $tokcorpus=$main::tokenizedcorpus.'_nolong';
   foreach (@$splitsentences) {
     $command="echo '$_' | $main::fuzzymatcher -n $main::ngramlength -t $main::tmpdirectoryfuzzy -p $main::highestfreqthresh -q $main::salmscriptsdirectory $main::inputfuzzymatch$stamp.txt $main::tokenizedcorpus $main::minimumscore 0";
-    #$command="echo '$_' | $main::salmscriptsdirectory/salm_modified/Bin/Linux/Search/LocateEmbeddedNgramsInCorpus.O64 $tokcorpus 100 100000000 2 10000000 $main::minimumscore 0 | gawk -f $main::salmscriptsdirectory/get_nbest_matches.awk";
     print STDERR "\n$command\n";
     @fuzzymatchoutput=`command`;
     $pkg->processFuzzyMatchOutputN($_,@fuzzymatchoutput);
   }
 }
 
-sub performFuzzyMatch { # original version
+sub performFuzzyMatch { 
     my ($pkg)=@_;
     my $splitsentences=$pkg->{splitsentences};
     open (FUZZYMATCHINPUT,">$main::inputfuzzymatch$stamp.txt");
@@ -370,70 +371,36 @@ sub performFuzzyMatch { # original version
 	    print FUZZYMATCHINPUT "$_\n";
     }
     close FUZZYMATCHINPUT;
-    my $command="bash $main::fuzzymatcher -n $main::ngramlength -t $main::tmpdirectoryfuzzy -p $main::highestfreqthresh $main::inputfuzzymatch$stamp.txt $main::tokenizedcorpus $main::minimumscore 0 $main::outputfuzzymatch$stamp.txt";
-    #my $command="bash $main::fuzzymatcher -n $main::ngramlength -t $main::tmpdirectoryfuzzy -p $main::highestfreqthresh -q $main::salmscriptsdirectory $main::inputfuzzymatch$stamp.txt $main::tokenizedcorpus $main::minimumscore 0 $main::outputfuzzymatch$stamp.txt";
-    print STDERR "\n$command\n";
-    @fuzzymatchoutput=`$command`;
-#    `rm -f $main::tmpdirectoryfuzzy/_approxquerycov*`;
-    #  check whether this or something similar also works 
-    #cat /home/pricie/vincent/picto/gitversion/Picto/../tmp/spellcheck/inputfuzzymatch1548343656.txt_nolong | salm_modified/Bin/Linux/Search/LocateEmbeddedNgramsInCorpus.O64 ../data/CGNCorpusSplit.txt_nolong 100 100000000 2 10000000 0.2 0 | gawk -f get_nbest_matches.awk 
-    
-    
-    #############
-#     echo 'd e % h o n d % d i e % o n s % g i s t e r e n % g e v o l g d % i s % b l a d % n a a r % d e % p o s t b o d e' | ./salm_modified/Bin/Linux/Search/LocateEmbeddedNgramsInCorpus.O64 /home/pricie/vincent/picto/gitversion/Picto/../data/CGNCorpusSplit.txt_nolong 100 100000000 2 10000000 0.2 0 | gawk 'BEGIN { FS="\t" }; \
-#       { if ($0 ~ /^0 /){ querypos++; queryseq=substr($1,3) } \
-#         else if ($1 ~ /^[0-9]+$/){ \
-#           split($5,linkarr," "); split($2,seqarr," "); \
-#           for (i=1;(i in linkarr);i+=2) links=((i==1) ? "" : links " ") "? " linkarr[i] "-" linkarr[i+1]; j=1; \
-#           for (i=1;(i in seqarr);i++) { \
-#             corpmark=((i==1) ? "" : corpmark " ")\
-#             (((j%2==1) && (linkarr[j]==i) && ++j) ? "<<<" (j/2) " " : "") seqarr[i] (((j%2==0) && (linkarr[j]==i) && ++j) ? " " (j-1)/2 ">>>" : "") }; \
-#            print "querypos\t" querypos "\tcorppos\t" $1 "\tsequence\t" $2 "\tscore\t" $3 "\tlinks\t" links "\tqueryDown\t" $4 (withmarkedsubseqs ? "\tqueryseq\t" queryseq "\tcorpmark\t" corpmark : "") } }'
-          
-      `rm -f ../tmp/fuzzy/_approxquerycov*`;
- $pkg->processFuzzyMatchOutput(@fuzzymatchoutput);
+
+ `cat $main::inputfuzzymatch$stamp.txt | salm_modified/Bin/Linux/Search/LocateEmbeddedNgramsInCorpus.O64 $main::tokenizedcorpus $main::highestfreqthresh 100000000 $main::ngramlength 10000000 $main::minimumscore 0 > $main::tmpdirectoryfuzzy/fuzzy$stamp.txt` ;
+
+my $command= "gawk -v withmarkedsubseqs=0 \\
+      'BEGIN { FS=\"\t\" }; \\
+      { if (\$0 ~ /^0 /){ querypos++; queryseq=substr(\$1,3) } \\
+        else if (\$1 ~ /^[0-9]+\$/){ \\
+          split(\$5,linkarr,\" \"); split(\$2,seqarr,\" \"); \\
+          for (i=1;(i in linkarr);i+=2) links=((i==1) ? \"\" : links \" \") \"? \" linkarr[i] \"-\" linkarr[i+1]; j=1; \\
+          for (i=1;(i in seqarr);i++) { \\
+            corpmark=((i==1) ? \"\" : corpmark \" \") \\
+            (((j%2==1) && (linkarr[j]==i) && ++j) ? \"<<<\" (j/2) \" \" : \"\") seqarr[i] (((j%2==0) && (linkarr[j]==i) && ++j) ? \" \" (j-1)/2 \">>>\" : \"\") }; \\
+          print \"querypos\t\" querypos \"\tcorppos\t\" \$1 \"\tsequence\t\" \$2 \"\tscore\t\" \$3 \"\tlinks\t\" links \"\tqueryDown\t\" \$4 (withmarkedsubseqs ? \"\tqueryseq\t\" queryseq \"\tcorpmark\t\" corpmark : \"\") } }' \\
+$main::tmpdirectoryfuzzy/fuzzy$stamp.txt";
+
+@fuzzymatchoutput=`$command`;
+$pkg->processFuzzyMatchOutput(@fuzzymatchoutput);
 }
 
-
-sub processFuzzyMatchOutput_ {
-  my ($pkg,@fuzzymatchoutput)=@_;
-  my $totalngramlength;
-  foreach my $lineoutput (@fuzzymatchoutput) {
-    ($querypos,$queryposnumber,$corppos,$corpposnumber,$sequence,$sequencename,$score,$scorenumber,$rank,$ranknumber,$links,$allcharacterpos,$rest)=split(/\t/,$lineoutput);
-    $allcharacterpos=~s/\? //g;
-    @positionpairs=split(/ /,$allcharacterpos);
-    foreach $positionpair(@positionpairs){ # A hypothesis that shares many and long n-grams with the corpus ($totaldifference) is the winning hypothesis
-      my $ngramlength=$pkg->calculateNGramLength($positionpair);
-      $totalngramlength=$totalngramlength+$ngramlength; 
-    }
-    $amountofpositionpairs=scalar @positionpairs;
-    if ($amountofpositionpairs>1){ # An additional character sequence substitution is performed if similar substrings are found (with a maximum gap of n)
-      my ($leftmiddlerightsubstring,$scorenumber)=$pkg->performCharacterGapSubstitution($amountofpositionpairs,$sequencename,$lineinput,@positionpairs);  if($leftmiddlerightsubstring){
-        $gaphash{$leftmiddlerightsubstring}=$scorenumber;
-      }
-    }
-  }
-  if(%gaphash){
-    my $highestvaluekey=(sort {$gaphash{$a} <=> $gaphash{$b}} keys %gaphash)[0];
-    ($leftsubstring,$middlesubstring,$rightsubstring)=split(/\t/,$highestvaluekey);
-    $lineinput=~s/ //g;
-    $lineinput =~s/(.*$leftsubstring).*($rightsubstring.*)/$1$middlesubstring$2/g;  
-  }
-}
-  
 sub processFuzzyMatchOutput {
-	my ($pkg)=@_;
+	my ($pkg,@fuzzymatchoutput)=@_;
 	my %hypothesishash=();
 	my $count=1;
 	open (FUZZYMATCHINPUT,"<$main::inputfuzzymatch$stamp.txt");
 	while($lineinput=<FUZZYMATCHINPUT>){
 		my $totalngramlength;
 		chomp $lineinput;
-		open (FUZZYMATCHOUTPUT,"<$main::outputfuzzymatch$stamp.txt");
 		my %gaphash=();
-		#foreach $lineoutput (@fuzzymatchoutput) {
-		while ($lineoutput=<FUZZYMATCHOUTPUT>){
-			($querypos,$queryposnumber,$corppos,$corpposnumber,$sequence,$sequencename,$score,$scorenumber,$rank,$ranknumber,$links,$allcharacterpos,$rest)=split(/\t/,$lineoutput);
+ 		foreach my $lineoutput (@fuzzymatchoutput) {
+			($querypos,$queryposnumber,$corppos,$corpposnumber,$sequence,$sequencename,$score,$scorenumber,$links,$allcharacterpos,$rest)=split(/\t/,$lineoutput);
 			if($queryposnumber eq $count){
 				$allcharacterpos=~s/\? //g;
 				@positionpairs=split(/ /,$allcharacterpos);
@@ -507,8 +474,7 @@ sub printHighestScoringHypothesis{
 	$highestscoringucfirst=ucfirst $highestscoring;
 	print "$highestscoringucfirst";
 	`rm -f $main::inputfuzzymatch$stamp.txt`;
- 	`rm -f $main::inputfuzzymatch$stamp.txt_nolong`;
-        `rm -f $main::outputfuzzymatch$stamp.txt`;
+        `rm -f $main::tmpdirectoryfuzzy/fuzzy$stamp.txt`;
 }
 
 #---------------------------------------

@@ -54,6 +54,7 @@ $sessionid=shift(@ARGV);
 $message=message->new(text,$in,
 		      logfile,\*LOG);
 $message->compoundWords; 
+$message->addExtraStops;
 $message->detectSentences; 
 $message->spellcheck; 
 print "\n";
@@ -85,6 +86,34 @@ sub compoundWords{
     } 
     $newmessage=~s/^ ((.)*)/$1/g;
     $pkg->{text}=$newmessage;
+}
+
+sub addExtraStops{
+    my ($pkg)=@_;
+    my $text=$pkg->{text};
+    $text=~s/\./ ./ig;
+    $text=~s/\?/ ?/ig;
+    $text=~s/\!/ !/ig;
+    my @words=split(/\s/,$text);
+    my $i=1;
+    my $newstring="";
+    foreach $word(@words){
+	    if($i eq "20"){
+		$word="$word.";
+		$newstring="$newstring $word";
+		$i=1;
+	    }
+	    elsif (($word eq ".") || ($word eq "?") || ($word eq "!")){
+		$newstring="$newstring $word";
+		$i=1;
+	    }
+	    else{
+		$newstring="$newstring $word";
+		$i++;
+	    }
+    }
+    $newstring=~s/^ //ig;
+    $pkg->{text}=$newstring;
 }
 
 sub detectSentences {
@@ -217,7 +246,6 @@ sub findVariants {
                     "zijt" => 1,
                     "chat" => 1,
                     "chatten" => 1};
-    #my @dictionaryarray = (",","!","?","hey","hallo","groetjes","sebiet","zijt","chat","chatten");
     foreach my $word_object (@$words) {
 	my $spellcheck=$word_object->{spellcheck}; 
 	my $word=$word_object->{token};
@@ -225,7 +253,6 @@ sub findVariants {
 	my $frequency=$main::lexicon{$word};
 	chomp $frequency;
 	unless ($dictionary->{$word} or $word=~/(\d)+/) {
-	#unless ((grep( /^$word$/, @dictionaryarray)) || ($word =~ /(\d)+/)){
 			unless (($spellcheck eq "Real") && (($frequency>$main::realwordminimumfrequency) ||  ($main::FIRSTNAMES{$word}))) { 
 				push(@alternatives,$word_object->findPhoneticVariants); # Cognitive errors
 				my @possiblealternatives;
@@ -484,8 +511,6 @@ sub wordSplitter{
         my $command="perl $main::singlewordsplitter -i $main::wordsplitterpenalty2 '$word'";
         print STDERR "$command\n";
     	my @output=`$command`;
-# 	open (OUTPUTSPLITTER,"<$main::outputforsinglewordsplitter$stamp.txt");
-# 	while($line=<OUTPUTSPLITTER>){
         foreach $line (@output) {
 		chomp $line;
 		@outputwords=split(/\t/,$line);
@@ -495,7 +520,6 @@ sub wordSplitter{
 			return $line;
 		}
 	}
-	#`rm -f $main::outputforsinglewordsplitter$stamp.txt`;
     }
     else{
 	   return;

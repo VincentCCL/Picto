@@ -1,4 +1,4 @@
-####### SpellCorrector_cornetto.pl ##########
+####### SpellCorrector_dutch.pl ##########
 
 # By Leen Sevens 
 # leen@ccl.kuleuven.be 
@@ -351,115 +351,95 @@ sub createSplitSentences{
 	$pkg->{splitsentences}=[@allsplitsentences];
 }
 
-sub performFuzzyMatch_ {
-  my ($pkg)=@_;
-  my $splitsentences=$pkg->{splitsentences};
-  my $tokcorpus=$main::tokenizedcorpus.'_nolong';
-  foreach (@$splitsentences) {
-    $command="echo '$_' | $main::fuzzymatcher -n $main::ngramlength -t $main::tmpdirectoryfuzzy -p $main::highestfreqthresh -q $main::salmscriptsdirectory $main::inputfuzzymatch$stamp.txt $main::tokenizedcorpus $main::minimumscore 0";
-    print STDERR "\n$command\n";
-    @fuzzymatchoutput=`command`;
-    $pkg->processFuzzyMatchOutputN($_,@fuzzymatchoutput);
-  }
-}
-
 sub performFuzzyMatch { 
     my ($pkg)=@_;
     my $splitsentences=$pkg->{splitsentences};
-    open (FUZZYMATCHINPUT,">$main::inputfuzzymatch$stamp.txt");
-    foreach(@$splitsentences){
-	    print FUZZYMATCHINPUT "$_\n";
-    }
-    close FUZZYMATCHINPUT;
-
- `cat $main::inputfuzzymatch$stamp.txt | salm_modified/Bin/Linux/Search/LocateEmbeddedNgramsInCorpus.O64 $main::tokenizedcorpus $main::highestfreqthresh 100000000 $main::ngramlength 10000000 $main::minimumscore 0 > $main::tmpdirectoryfuzzy/fuzzy$stamp.txt` ;
-
-my $command= "gawk -v withmarkedsubseqs=0 \\
-      'BEGIN { FS=\"\t\" }; \\
-      { if (\$0 ~ /^0 /){ querypos++; queryseq=substr(\$1,3) } \\
-        else if (\$1 ~ /^[0-9]+\$/){ \\
-          split(\$5,linkarr,\" \"); split(\$2,seqarr,\" \"); \\
-          for (i=1;(i in linkarr);i+=2) links=((i==1) ? \"\" : links \" \") \"? \" linkarr[i] \"-\" linkarr[i+1]; j=1; \\
-          for (i=1;(i in seqarr);i++) { \\
-            corpmark=((i==1) ? \"\" : corpmark \" \") \\
-            (((j%2==1) && (linkarr[j]==i) && ++j) ? \"<<<\" (j/2) \" \" : \"\") seqarr[i] (((j%2==0) && (linkarr[j]==i) && ++j) ? \" \" (j-1)/2 \">>>\" : \"\") }; \\
-          print \"querypos\t\" querypos \"\tcorppos\t\" \$1 \"\tsequence\t\" \$2 \"\tscore\t\" \$3 \"\tlinks\t\" links \"\tqueryDown\t\" \$4 (withmarkedsubseqs ? \"\tqueryseq\t\" queryseq \"\tcorpmark\t\" corpmark : \"\") } }' \\
-$main::tmpdirectoryfuzzy/fuzzy$stamp.txt";
-
-@fuzzymatchoutput=`$command`;
-$pkg->processFuzzyMatchOutput(@fuzzymatchoutput);
+    $input=join("\\n",@$splitsentences);
+    $cmd="echo -e \"$input\" | salm_modified/Bin/Linux/Search/LocateEmbeddedNgramsInCorpus.O64 $main::tokenizedcorpus $main::highestfreqthresh 100000000 $main::ngramlength 10000000 $main::minimumscore 0" ;
+    @fuzzysalm=`$cmd`;
+    my $querypos=0;
+    my @fuzzytransformed=();
+    foreach (@fuzzysalm) {
+	if (/(^0) (.+$)/) { 
+	   $querypos++;
+           $inputzin=$2;
+        }
+        elsif (/^\d+/) { 
+          chomp;
+          ($linenr,$string,$score,$querydown,$position)=split(/\t/);
+	  push(@fuzzytransformed,[$querypos,$inputzin,$linenr,$string,$score,$position]);
+        }
+     }
+     $pkg->processFuzzyMatchOutput(@fuzzytransformed);
 }
 
 sub processFuzzyMatchOutput {
-	my ($pkg,@fuzzymatchoutput)=@_;
-	my %hypothesishash=();
-	my $count=1;
-	open (FUZZYMATCHINPUT,"<$main::inputfuzzymatch$stamp.txt");
-	while($lineinput=<FUZZYMATCHINPUT>){
-		my $totalngramlength;
-		chomp $lineinput;
-		my %gaphash=();
- 		foreach my $lineoutput (@fuzzymatchoutput) {
-			($querypos,$queryposnumber,$corppos,$corpposnumber,$sequence,$sequencename,$score,$scorenumber,$links,$allcharacterpos,$rest)=split(/\t/,$lineoutput);
-			if($queryposnumber eq $count){
-				$allcharacterpos=~s/\? //g;
-				@positionpairs=split(/ /,$allcharacterpos);
-				foreach $positionpair(@positionpairs){ # A hypothesis that shares many and long n-grams with the corpus ($totaldifference) is the winning hypothesis
-					my $ngramlength=$pkg->calculateNGramLength($positionpair);
-					$totalngramlength=$totalngramlength+$ngramlength; 
-				}
-				$amountofpositionpairs=scalar @positionpairs;
-				if ($amountofpositionpairs>1){ # An additional character sequence substitution is performed if similar substrings are found (with a maximum gap of n)
- 					my ($leftmiddlerightsubstring,$scorenumber)=$pkg->performCharacterGapSubstitution($amountofpositionpairs,$sequencename,$lineinput,@positionpairs); 
-					if($leftmiddlerightsubstring){
-					 	$gaphash{$leftmiddlerightsubstring}=$scorenumber;
-					}
-				}
-			}
-		}
-		if(%gaphash){
-			my $highestvaluekey=(sort {$gaphash{$a} <=> $gaphash{$b}} keys %gaphash)[0];
-			($leftsubstring,$middlesubstring,$rightsubstring)=split(/\t/,$highestvaluekey);
-			$lineinput=~s/ //g;
-			$lineinput =~s/(.*$leftsubstring).*($rightsubstring.*)/$1$middlesubstring$2/g;       
-		}
-		$hypothesishash{$lineinput}=$totalngramlength;
-		$count++;
+  my ($pkg,@fuzzy)=@_;
+  my (%INPUTSENTENCE,%SCORE,%GAPHASH)=();
+  foreach (@fuzzy) {
+     my ($querypos,$input,$line,$str,$score,$position)=@$_;
+     my @positionpairs=split(/\s/,$position);
+     if (@positionpairs>2) { 
+        my ($leftmiddlerightsubstring)=$pkg->performCharacterGapSubstitution($str,$input,@positionpairs);
+	if($leftmiddlerightsubstring){
+	 	$gaphash{$leftmiddlerightsubstring}=$score;
 	}
-	$pkg->printHighestScoringHypothesis(%hypothesishash);
+     }
+     my ($begin, $end);
+     while (@positionpairs) {
+       $begin=shift(@positionpairs);
+       $end=shift(@positionpairs);
+       $SCORE{$querypos}+=$end-$begin;  # Add the difference between end and begin positions of the match
+     }
+     if(%gaphash){
+	  my $highestvaluekey=(sort {$gaphash{$a} <=> $gaphash{$b}} keys %gaphash)[0];
+	  ($leftsubstring,$middlesubstring,$rightsubstring)=split(/\t/,$highestvaluekey);
+	  $input=~s/ //g;
+	  $input =~s/(.*$leftsubstring).*($rightsubstring.*)/$1$middlesubstring$2/g;       
+     }
+     $INPUTSENTENCE{$querypos}=$input;   
+  }
+  @highest=sort{$SCORE{$b} <=> $SCORE{$a}} keys %SCORE; # Get highest score
+  $output=&makenicestring($INPUTSENTENCE{$highest[0]}); 
+  print "$output";
 }
 
-sub calculateNGramLength{
-	my ($pkg,$positionpair)=@_;
-	($firstcharacter,$lastcharacter)=split(/-/,$positionpair);
-	my $ngramlength=$lastcharacter-$firstcharacter;
-	return $ngramlength;
+sub makenicestring{
+   my ($str)= @_;
+   $str=~s/ //g;
+   $str=~s/%/ /g;
+   $str=~s/ ([!,\?\.])/$1/g;
+   $str=ucfirst $str;
+   return $str;
 }
 
 sub performCharacterGapSubstitution{
-	my ($pkg,$amountofpositionpairs,$sequencename,$lineinput,@positionpairs)=@_;
-	for(my $i=0;$i<$amountofpositionpairs-1;$i++){
-		($firstcharacter,$lastcharacter)=split(/-/,$positionpairs[$i]);
-		($firstcharacter2,$lastcharacter2)=split(/-/,$positionpairs[$i+1]);
-		$gap=$firstcharacter2-$lastcharacter;
+        my ($pkg,$sequencename,$lineinput,@positionpairs)=@_;
+        my (@begins,@ends);
+        while (@positionpairs) {
+           push(@begins,shift(@positionpairs));
+           push(@ends,shift(@positionpairs));
+        }
+        for(my $i=0;$i<@begins-1;$i++){
+                $gap=$begins[$i+1]-$ends[$i];
 		if ($gap<$main::maximumcharactergap){
 			@letters=split(/ /,$sequencename);
 			$leftsubstring="";
 			$rightsubstring="";
 			$middlesubstring="";
 			$lineinput=~s/ //g;
-			for (my $j=$firstcharacter-1;$j<$lastcharacter;$j++) {
+			for (my $j=$begins[$i]-1;$j<$ends[$i];$j++) {
 				$leftsubstring=$leftsubstring."$letters[$j]";
 			}
-			for (my $k=$firstcharacter2-1;$k<$lastcharacter2;$k++) {
+			for (my $k=$begins[$i+1]-1;$k<$ends[$i+1];$k++) {
 				$rightsubstring=$rightsubstring."$letters[$k]";
 			}
-			for (my $l=$lastcharacter;$l<$firstcharacter2-1;$l++) {
+			for (my $l=$ends[$i];$l<$begins[$i+1]-1;$l++) {
 				$middlesubstring=$middlesubstring."$letters[$l]";
 			}
 			if(($lineinput =~ /.*$leftsubstring(.){1,3}$rightsubstring.*/) || ($lineinput =~ /.*$leftsubstring(){1,3}$rightsubstring.*/)){
 				$leftmiddlerightsubstring="$leftsubstring\t$middlesubstring\t$rightsubstring";				
-				return($leftmiddlerightsubstring,$scorenumber);				
+				return($leftmiddlerightsubstring);				
 			}
 		}
 	}

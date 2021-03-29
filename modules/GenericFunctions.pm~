@@ -1,6 +1,7 @@
 # GenericFunctions.pm
 1; #-------------------
 
+$VERSION="1.1";  # 29.03.2021 WSD only loaded when activated
 $VERSION="1.0"; # Initial version
 # Default and configuration values
 
@@ -13,44 +14,63 @@ processOptions(%opts);
 
 sub LoadConfigPaths {
   &LoadShallowProcessingConfig;
-  &LoadWSDConfig;
+  if ($wsdoption) {&LoadWSDConfig;}
  # Location of compounding info for separable verbs
- # Vandeghinste, V. (2002). Lexicon Optimization: Maximizing Lexical Coverage in Speech Recognition through Automated Compounding. In M. Rodríguez and C. Araujo (eds.), Proceedings of the 3rd International Conference on Language Resources and Evaluation (LREC). European Language Resources Association. Las Palmas, Spain. 
+ # Vandeghinste, V. (2002). Lexicon Optimization: Maximizing Lexical Coverage in Speech Recognition through Automated Compounding. In M. Rodríguez and C. Araujo (eds.), Proceedings of the 3rd International Conference on Language Resources and Evaluation (LREC). European Language Resources Association. Las Palmas, Spain.
+
+ ## THIS IS EXCLUSIVELY FOR DUTCH --> should be moved to language dependent Shallow Language Analysis
  use DB_File;
- tie %lexicon,"DB_File","$Bin/../data/total.freqs.db"; # Location of the frequency lexicon (Berkeley)
- tie %headmodsolo,"DB_File","$Bin/../data/ModHead.freqs.db"; # Location of the database containing frequency information about heads and modifiers in compound nouns (Berkeley)
- tie %difmod,"DB_File","$Bin/../data/DifModsPerHead.db"; # Location of the database containing info on how many different mods were found per head (Berkeley)
+ tie %lexicon,"DB_File","$Bin/../data/dutch/total.freqs.db"; # Location of the frequency lexicon (Berkeley)
+ tie %headmodsolo,"DB_File","$Bin/../data/dutch/ModHead.freqs.db"; # Location of the database containing frequency information about heads and modifiers in compound nouns (Berkeley)
+ tie %difmod,"DB_File","$Bin/../data/dutch/dutch/DifModsPerHead.db"; # Location of the database containing info on how many different mods were found per head (Berkeley)
  $compoundprobthreshold=0.05; # Cf Vandeghinste (2002) for more info
        # P(stroopsmeren)=0.049
         # P(doorgeef)=0.0028
  #---------------------------------------
  # Lemma database extracted from CGN and Lassy
- tie %LEMMAS,"DB_File","$Bin/../data/lemmas.db";
-
+  $lemmafile="$Bin/../data/dutch/lemmas.db";
+  if (-e $lemmafile) {
+      tie %LEMMAS,"DB_File","$lemmafile";
+  }
+  else { print $log "Lemma db file not fount at $lemmafile\n";
+	 die;
+  }
  # Opentaal lexicon
- tie %SPELLCHECKLEX,"DB_File","$Bin/../data/spellchecklex.db";
-
+  $spellchecklex="$Bin/../data/dutch/spellchecklex.db";
+  if (-e $spellchecklex) {
+      tie %SPELLCHECKLEX,"DB_File",$spellchecklex;
+  }
+  else {
+      print $log "Spellchecklex file not found in $spellchecklex\n";
+  }
  # Firstnames lexicon
- tie %FIRSTNAMES,"DB_File","$Bin/../data/firstnames.db"; # List of all first names of all people living in Belgium in 2009 occuring more than once
- $maxlengthwordinspellcheck=30;
- $paralleloutput="$Bin/../tmp/output/ParallelOutput";
- $imgwidth=110; 
- $imgheigth=110; 
+  $firstnames= "$Bin/../data/dutch/firstnames.db"; # List of all first names of all people living in Belgium in 2009 occuring more than once
+  if (-e $firstnames) {
+      tie %FIRSTNAMES,"DB_File",$firstnames;
+  }
+  $maxlengthwordinspellcheck=30;
+  $paralleloutput="$Bin/../tmp/output/ParallelOutput";  # What is this?
+  $imgwidth=110;  # this should move to html_out
+  $imgheigth=110; # this should move to html_out
 
 }
 
 sub LoadShallowProcessingConfig {
- # Shallow Processing Configuration Paths
- our $tempfilelocation="$Bin/../tmp/picto/";
- print $log "tempfilelocation: $tempfilelocation\n" if $log;
- unless (-e $tempfilelocation) {
-    `mkdir -p $tempfilelocation`;
-    print $log "$tempfilelocation did not exist. Made a new dir\n" if $log;
- }
- # Location of the Hunpos Tagger used in shallow processing
- # Halácsy, Péter, András Kornai, Csaba Oravecz (2007) HunPos - an open source trigram tagger In Proceedings of the 45th Annual Meeting of the Association for Computational Linguistics Companion Volume Proceedings of the Demo and Poster Sessions. Association for Computational Linguistics, Prague, Czech Republic, pages 209--212.
- our $hunposlocation="$Bin/../Hunpos/"; # Path of the hunpos application
- print $log "Tagger location: $hunposlocation\n" if $log;
+    # Shallow Processing Configuration Paths
+    our $tempfilelocation="$Bin/../log/t2p/";
+    print $log "tempfilelocation: $tempfilelocation\n" if $log;
+    unless (-e $tempfilelocation) {
+	`mkdir -p $tempfilelocation`;
+	print $log "$tempfilelocation did not exist. Made a new dir\n" if $log;
+    }
+    # Location of the Hunpos Tagger used in shallow processing
+    # Halácsy, Péter, András Kornai, Csaba Oravecz (2007) HunPos - an open source trigram tagger In Proceedings of the 45th Annual Meeting of the Association for Computational Linguistics Companion Volume Proceedings of the Demo and Poster Sessions. Association for Computational Linguistics, Prague, Czech Republic, pages 209--212.
+    our $hunposlocation="$Bin/modules/Hunpos/"; # Path of the hunpos application
+    unless (-e $hunposlocation) {
+	print $log "Set location of HunPos does not exist: $hunposlocation\n";
+	die;
+    }
+    print $log "Tagger location: $hunposlocation\n" if $log;
 }
 
 sub LoadWSDConfig {
@@ -81,7 +101,8 @@ sub LoadDefaultValues {
  $verbose{'p'}="-p Target pictograph set (sclera/beta/rand)";
  $options{'p'}={'sclera'   => 1,
                 'beta'     => 1,
-                'rand'     => 1};
+                'rand'     => 1,
+                'arasaac'  => 1,};
 
  $default{'o'}='html';
  $verbose{'o'}="-o Output mode (html/text/json/paralleljson)";

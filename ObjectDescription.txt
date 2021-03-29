@@ -20,13 +20,20 @@ These are functions which are not object methods
 
 LoacConfigPaths (GenericFunctions.pm)
   sets the paths to all external data and tools
+  still contains references to files which are only relevant for Dutch Shallow Processing, should probably be moved to LoadShallowProcessingConfig
+  calls LoadShallowProcessingConfig
+        LoadWSDConfig  (when activated)
   
 LoadDefaultValues (GenericFunctions.pm)
   sets default values for all command line options
   
 LoadShallowProcessingConfig (GenericFunctions.pm)
   sets the paths to all shallow processing submodules
-  
+  This assumes you have HunPos installed with the appropriate models
+
+LoadWSDConfig (GenericFunctions.pm)
+   sets all paths for WSD module
+   
 processOptions (GenericFunctions.pm)
   reads and sets all options
 
@@ -182,7 +189,8 @@ preProcess (simplify_cornetto.pm)
   Removes emoji and deals with the "hoe gaat het" expressions, which generate one pictograph.
 
 retrieveAssociations (WordAssociationPredictor.pl)
-  Retrieves associated pictographs for pictographs that are previously inserted by the user. Uses object::openWordnet (object.pm), word::retrieveLemmas (WordAssociationPredictor.pl), word::findMostFrequentLemma (WordAssociationPredictor.pl), word::findAssociations (WordAssociationPredictor.pl), word::lemmatizeAssociations (WordAssociationPredictor.pl), word::findMostFrequentDepLemma (WordAssociationPredictor.pl), word::findDepAssociations (WordAssociationPredictor.pl), and word::lemmatizeDepAssociations (WordAssociationPredictor.pl).
+  Retrieves associated pictographs for pictographs that are previously inserted by the user. 
+  Uses object::openWordnet (object.pm), word::retrieveLemmas (WordAssociationPredictor.pl), word::findMostFrequentLemma (WordAssociationPredictor.pl), word::findAssociations (WordAssociationPredictor.pl), word::lemmatizeAssociations (WordAssociationPredictor.pl), word::findMostFrequentDepLemma (WordAssociationPredictor.pl), word::findDepAssociations (WordAssociationPredictor.pl), and word::lemmatizeDepAssociations (WordAssociationPredictor.pl).
 
 searchArgMax (picto.pm)
   Looks for the optimal path to convert the message into pictos. Uses sentence::searchArgMax (picto.pm).
@@ -328,7 +336,8 @@ JSONOut (picto.pm)
   Provides JSON output of the message. 
 
 lemmatize (object.pm)
-  Lemmatises each of the words in the sentence. Uses word::lemmatize (simplifybackup.pm).
+  Lemmatises each of the words in the sentence. 
+  Uses word::lemmatize (simplifybackup.pm).
 
 makeActive (simplify_cornetto.pm)
   Converts a passive sentence into an active one by moving the patient and the agent. Uses sentence::findAgens (simplify_cornetto.pm).

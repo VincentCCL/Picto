@@ -24,6 +24,9 @@ LoacConfigPaths (GenericFunctions.pm)
 LoadDefaultValues (GenericFunctions.pm)
   sets default values for all command line options
   
+LoadShallowProcessingConfig (GenericFunctions.pm)
+  sets the paths to all shallow processing submodules
+  
 processOptions (GenericFunctions.pm)
   reads and sets all options
 

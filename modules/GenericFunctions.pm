@@ -17,59 +17,10 @@ sub LoadConfigPaths {
   if ($wsdoption) {&LoadWSDConfig;}
   # Location of compounding info for separable verbs
   # Vandeghinste, V. (2002). Lexicon Optimization: Maximizing Lexical Coverage in Speech Recognition through Automated Compounding. In M. Rodríguez and C. Araujo (eds.), Proceedings of the 3rd International Conference on Language Resources and Evaluation (LREC). European Language Resources Association. Las Palmas, Spain.
-  
-  ## THIS IS EXCLUSIVELY FOR DUTCH --> should be moved to language dependent Shallow Language Analysis
-  use DB_File;
-  $lex="$Bin/data/dutch/total.freqs.db"; # Location of the frequency lexicon (Berkeley)
-  if (-e $lex) {
-      tie %lexicon,"DB_File",$lex;
+  if ($sourcelanguage eq 'dutch') {
+      require "$Bin/modules/shallow_dutch.pm"; 
+      &LoadShallowProcessingConfigDutch;
   }
-  else {
-      print $log "Frequency lexicon cannot be found at $lex\n";
-  }
-  $headmodsolo="$Bin/data/dutch/ModHead.freqs.db"; 
-  if (-e $headmodsolo) {
-      tie %headmodsolo,"DB_File",$headmodsolo; # Location of the database containing frequency information about heads and modifiers in compound nouns (Berkeley)
-  }
-  else {
-      print $log "HeadModSolo db cannot be found in $headmodsolo\n";
-  }
-  $difmodsperhead="$Bin/data/dutch/dutch/DifModsPerHead.db"; # Location of the database containing info on how many different mods were found per head (Berkeley)
-  if (-e $difmodsperhead) {
-      tie %difmod,"DB_File",$difmodsperhead;
-  }
-  else {
-      print $log "Difmodsperhead db cannot be found in $difmodsperhead;n";
-  }
-  $compoundprobthreshold=0.05; # Cf Vandeghinste (2002) for more info
-  # P(stroopsmeren)=0.049
-  # P(doorgeef)=0.0028
-  #---------------------------------------
-  # Lemma database extracted from CGN and Lassy
-  $lemmafile="$Bin/data/dutch/lemmas.db";
-  if (-e $lemmafile) {
-      tie %LEMMAS,"DB_File","$lemmafile";
-  }
-  else { print $log "Lemma db file not fount at $lemmafile\n";
-	 die;
-  }
- # Opentaal lexicon
-  $spellchecklex="$Bin/../data/dutch/spellchecklex.db";
-  if (-e $spellchecklex) {
-      tie %SPELLCHECKLEX,"DB_File",$spellchecklex;
-  }
-  else {
-      print $log "Spellchecklex file not found in $spellchecklex\n";
-  }
- # Firstnames lexicon
-  $firstnames= "$Bin/data/dutch/firstnames.db"; # List of all first names of all people living in Belgium in 2009 occuring more than once
-  if (-e $firstnames) {
-      tie %FIRSTNAMES,"DB_File",$firstnames;
-  }
-  else {
-      print $log "Could not fine firstnames db at $firstnames\n";
-  }
-  $maxlengthwordinspellcheck=30;
   $paralleloutput="$Bin/../tmp/output/ParallelOutput";  # What is this?
   $imgwidth=110;  # this should move to html_out
   $imgheigth=110; # this should move to html_out
@@ -95,7 +46,7 @@ sub LoadShallowProcessingConfig {
 }
 
 sub LoadWSDConfig {
- our $wsdpath="$Bin/../tmp/wsd/";
+ our $wsdpath="$Bin/../log/wsd/";
  print $log "wsd path: $wsdpath\n" if $log;
  unless (-e $wsdpath) {
     `mkdir -p $wsdpath`;
@@ -104,8 +55,16 @@ sub LoadWSDConfig {
  our $wsdinput="$wsdpath/wsdinput";
  our $wsdoutput="$wsdpath/wsdoutput";
  our $wsdconvertedoutput="$wsdpath/wsdconvertedoutput";
- our $wsdtool="$Bin/../DutchWSD/svm_wsd-master/dsc_wsd_tagger.py"; 
- our $wsdconverter="$Bin/TwigDutchSemCor.pl";
+ our $wsdtool="$Bin/modules/DutchWSD/svm_wsd-master/dsc_wsd_tagger.py"; 
+ unless (-e $wsdtool) {
+     print $log "$wsdtool not found.\n" if $log;
+     return undef;
+ }
+ our $wsdconverter="$Bin/modules/TwigDutchSemCor.pl";
+ unless (-e $wsdconverter) {
+     print $log "$wsdconverter not found.\n" if $log;
+     return undef;
+ }
 }
 
 sub LoadDefaultValues {

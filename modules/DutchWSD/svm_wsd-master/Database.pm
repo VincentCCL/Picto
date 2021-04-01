@@ -1,19 +1,16 @@
-####### Database.pm ##########
+### Database.pm ###
 
 # By Vincent Vandeghinste
 # vincent@ccl.kuleuven.be
 # Date: 07.10.2013
 
 #---------------------------------------
-
 $VERSION="1.0"; # Version used in the first release for WAI-NOT
-
 #---------------------------------------
 
-
 # Contains the methods for connecting to the Postgres database
-print $log "Database.pm $VERSION loaded\n" if $log;
 1;
+
 #---------------------------------------	
 package DBI::db;
 #---------------------------------------	
@@ -22,14 +19,10 @@ use DBI;
 
 sub new {
     my ($pkg,$dbasename,$dbhost,$dbport,$dbuser,$dbpwd)=@_;
-    unless ($dbasename=~/./ and $dbhost=~/./ and $dbport=~/./ and $dbpwd=~/./) {
-      $log=$pkg->{logfile};
-      print $log "Database settings not properly defined in GenericFunctions.pm\n" if $log;
-      print STDERR "Database settings not properly defined in GenericFunctions.pm\n";
-      die;
-    }
     my $dbh;
     unless ($dbh=DBI->connect("DBI:Pg:dbname=$dbasename;host=$dbhost;port=$dbport","$dbuser","$dbpwd")) {
+	$log=$pkg->{logfile};
+	print $log "Cannot open database $dbasename\n";
 	die $DBI::errstr;
     }
     return $dbh;
@@ -52,11 +45,11 @@ sub execute {
 }
  
 sub lookup {
-    my ($dbh,$sql)=@_;
+    my ($dbh,$sql,$log)=@_;
     my $cache;
-    if ($result=$DBCACHE{$sql}) {
-    	return $result;
-    }
+   # if ($result=$DBCACHE{$sql}) {
+    #	return $result;
+    #}
     my $statement=$dbh->prepare($sql);
     if ($statement->execute) {
         my $result=$statement->fetchall_arrayref;
@@ -64,6 +57,9 @@ sub lookup {
         return $result;
     }
     else {
+        if ($log) {
+            print $log "Error in $sql\n";
+        }
         print STDERR "Error in $sql\n";
         return -1;
     }

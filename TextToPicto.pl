@@ -14,7 +14,7 @@ $VERSION="4.0";
 
 # Takes the following obligatory input options:
 
-# -p sclera|beta|rand sets the pictograph set used in the output
+# -p sclera|beta|rand|arasaac sets the pictograph set used in the output
 # -s cornetto|dutch|spanish|english sets the source language/database
 # -o html|text|json|paralleljson sets the output mode (html generates valid html with <img> tags, text generates text with filenames (without extensions), json generates JSON, paralleljson generates JSON with images and the associated original input words)
 # -e on|off sets the spelling correction module
@@ -53,7 +53,7 @@ $VERSION="4.0";
 
 use FindBin qw($Bin); 
 use Encode qw(decode);
-require "$Bin/GenericFunctions.pm";
+require "$Bin/modules/GenericFunctions.pm";
 
 #---------------------------------------
 
@@ -62,18 +62,18 @@ require "$Bin/GenericFunctions.pm";
 
 # Libraries 
 
-require "$Bin/object.pm";
-require "$Bin/Database.pm";
-require "$Bin/synset.pm";
-require "$Bin/picto.pm";
-require "$Bin/synset_$sourcelanguage.pm";
+require "$Bin/modules/object.pm";
+require "$Bin/modules/Database.pm";
+require "$Bin/modules/synset.pm";
+require "$Bin/modules/picto.pm";
+require "$Bin/modules/synset_$sourcelanguage.pm";
 unless ($simplificationlevel eq 'none') {
- require "$Bin/simplify_$sourcelanguage.pm";
+ require "$Bin/modules/simplify_$sourcelanguage.pm";
 }
 else { 
- require "$Bin/shallow_$sourcelanguage.pm";
+ require "$Bin/modules/shallow_$sourcelanguage.pm";
 }
-require "$Bin/wsd.pm" if $wsdoption eq 'on';
+require "$Bin/modules/wsd.pm" if $wsdoption eq 'on';
 
 
 #---------------------------------------

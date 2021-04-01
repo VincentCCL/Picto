@@ -13,7 +13,8 @@
 
 #---------------------------------------
 
-$VERSION="2.0"; # 21.01.2019 Cleaning up the code
+$VERSION="2.1"; # 29.03.2021 Moved stuff from GenericFunctions.pm to here, as it belonged to shallow dutch processing
+#$VERSION="2.0"; # 21.01.2019 Cleaning up the code
 #$VERSION="1.2"; # 11.02.2014 Spell checking checks first names
 #$VERSION="1.1.4"; # 07.02.2014 No spell checking for numbers !
 #$VERSION="1.1.3"; # 06.02.2014 AdaptPolarity is now logged +  bug fix + bug fix to spellchecker
@@ -27,34 +28,64 @@ $VERSION="2.0"; # 21.01.2019 Cleaning up the code
 print $log "shallow_dutch version $VERSION loaded\n" if $log;
 #---------------------------------------
 
-our $hunpostraining="$Bin/hunpos_data/cgn+lassy_klein"; # Path to the hunpos model
+our $hunpostraining="$Bin/modules/hunpos_data/cgn+lassy_klein"; # Path to the hunpos model
 print $log "Tagger model location: $hunpostraining\n" if $log;
 1;
 #---------------------------------------
 
-# Location of compounding info for separable verbs
-# Vandeghinste, V. (2002). Lexicon Optimization: Maximizing Lexical Coverage in Speech Recognition through Automated Compounding. In M. Rodríguez and C. Araujo (eds.), Proceedings of the 3rd International Conference on Language Resources and Evaluation (LREC). European Language Resources Association. Las Palmas, Spain. 
+sub LoadShallowProcessingConfigDutch {
+    # Location of compounding info for separable verbs
+    # Vandeghinste, V. (2002). Lexicon Optimization: Maximizing Lexical Coverage in Speech Recognition through Automated Compounding. In M. Rodríguez and C. Araujo (eds.), Proceedings of the 3rd International Conference on Language Resources and Evaluation (LREC). European Language Resources Association. Las Palmas, Spain.
 
-# tie %lexicon,"DB_File","$Bin/../data/total.freqs.db"; # Location of the frequency lexicon (Berkeley)
-# tie %headmodsolo,"DB_File","$Bin/../data/ModHead.freqs.db"; # Location of the database containing frequency information about heads and modifiers in compound nouns (Berkeley)
-# tie %difmod,"DB_File","$Bin/../data/DifModsPerHead.db"; # Location of the database containing info on how many different mods were found per head (Berkeley)
-# $compoundprobthreshold=0.05; # Cf Vandeghinste (2002) for more info
-# 
-#         # P(stroopsmeren)=0.049
-#         # P(doorgeef)=0.0028
-# 
-# #---------------------------------------
-# 
-# # Lemma database extracted from CGN and Lassy
-# tie %LEMMAS,"DB_File","$Bin/../data/lemmas.db";
-# 
-# # Opentaal lexicon
-# tie %SPELLCHECKLEX,"DB_File","$Bin/../data/spellchecklex.db";
-# 
-# # Firstnames lexicon
-# tie %FIRSTNAMES,"DB_File","$Bin/../data/firstnames.db"; # List of all first names of all people living in Belgium in 2009 occuring more than once
-# 
-# $maxlengthwordinspellcheck=30;
+    ## THIS IS EXCLUSIVELY FOR DUTCH --> should be moved to language dependent Shallow Language Analysis
+    use DB_File;
+    $lex="$Bin/data/dutch/total.freqs.db"; # Location of the frequency lexicon (Berkeley)
+    if (-e $lex) {
+	tie %lexicon,"DB_File",$lex;
+    }
+    else {
+	print $log "Frequency lexicon cannot be found at $lex\n";
+    }
+    $headmodsolo="$Bin/data/dutch/ModHead.freqs.db";
+    if (-e $headmodsolo) {
+	tie %headmodsolo,"DB_File",$headmodsolo; # Location of the database containing frequency information about heads and modifiers in compound nouns (Berkeley)
+    }
+    else {
+	print $log "HeadModSolo db cannot be found in $headmodsolo\n";
+    }
+    $difmodsperhead="$Bin/data/dutch/DifModsPerHead.db"; # Location of the database containing info on how many different mods were found per head (Berkeley)
+    if (-e $difmodsperhead) {
+	tie %difmod,"DB_File",$difmodsperhead;
+    }
+    else {
+	print $log "Difmodsperhead db cannot be found in $difmodsperhead;n";
+    }
+    $compoundprobthreshold=0.05; # Cf Vandeghinste (2002) for more info
+    $lemmafile="$Bin/data/dutch/lemmas.db";
+    if (-e $lemmafile) {
+	tie %LEMMAS,"DB_File","$lemmafile";
+    }
+    else { print $log "Lemma db file not fount at $lemmafile\n";
+	   die;
+    }
+    # Opentaal lexicon
+    $spellchecklex="$Bin/data/dutch/spellchecklex.db";
+    if (-e $spellchecklex) {
+	tie %SPELLCHECKLEX,"DB_File",$spellchecklex;
+    }
+    else {
+	print $log "Spellchecklex file not found in $spellchecklex\n";
+    }
+    # Firstnames lexicon
+    $firstnames= "$Bin/data/dutch/firstnames.db"; # List of all first names of all people living in Belgium in 2009 occuring more than once
+    if (-e $firstnames) {
+	tie %FIRSTNAMES,"DB_File",$firstnames;
+    }
+    else {
+	print $log "Could not fine firstnames db at $firstnames\n";
+    }
+    our $maxlengthwordinspellcheck=30;
+}    
 
 #---------------------------------------
 package message;

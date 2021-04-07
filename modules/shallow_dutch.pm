@@ -13,7 +13,8 @@
 
 #---------------------------------------
 
-$VERSION="2.1"; # 29.03.2021 Moved stuff from GenericFunctions.pm to here, as it belonged to shallow dutch processing
+$VERSION="2.1.1"; # 07.04.2021 No longer writing outputfiles for the external tagger
+#$VERSION="2.1"; # 29.03.2021 Moved stuff from GenericFunctions.pm to here, as it belonged to shallow dutch processing
 #$VERSION="2.0"; # 21.01.2019 Cleaning up the code
 #$VERSION="1.2"; # 11.02.2014 Spell checking checks first names
 #$VERSION="1.1.4"; # 07.02.2014 No spell checking for numbers !
@@ -119,22 +120,28 @@ sub findSeparableVerbs {
 sub tag {
     my ($pkg)=@_;
     my $stamp=time.$main::sessionid;
-#     my $log=$pkg->{logfile};
-#     print $log "\nPart of Speech Tagging\n" if $log;
-    open (TMP,">$main::tempfilelocation/$stamp") or die;
+    my $log=$pkg->{logfile};
+    print $log "\nPart of Speech Tagging\n" if $log;
+    my $tmpfilename=$main::tempfilelocation."/".$stamp;
+    open (TMP,">$tmpfilename") or print $log "Can't open $tmpfilename for tagger input\n" if $log;# or die;
     my $words=$pkg->{words};
     foreach (@$words) {
     	$token=$_->{token};
     	print TMP "$token\n";
     }
     close TMP;
-    my $systemcommand="$main::hunposlocation/hunpos-tag $main::hunpostraining < $main::tempfilelocation/$stamp > $main::tempfilelocation/$stamp.tmp";
-#     print $log "$systemcommand\n" if $log;
-    `$systemcommand`;
-    unlink "$main::tempfilelocation/$stamp" or print $log "\nCannot delete $main::tempfilelocation/$stamp.tmp\n" if $log;
-    open (TMP,"$main::tempfilelocation/$stamp.tmp");
+    #my $systemcommand="$main::hunposlocation/hunpos-tag $main::hunpostraining < $main::tempfilelocation/$stamp > $main::tempfilelocation/$stamp.tmp";
+    my $systemcommand="$main::hunposlocation/hunpos-tag $main::hunpostraining < $tmpfilename";
+    print $log "$systemcommand\n" if $log;
+    @taggeroutput=`$systemcommand`;
+    #unlink "$main::tempfilelocation/$stamp" or print $log "\nCannot delete $main::tempfilelocation/$stamp.tmp\n" if $log;
+    #open (TMP,"$main::tempfilelocation/$stamp.tmp") or print $log "Can't open $main::tempfilelocation/$stamp.tmp" if $log or die;
     my @words;
-    while (<TMP>) {
+    #while (<TMP>) {
+    if (@taggeroutput<1) {
+	print $log "Tagger does not provide output\n" if $log;
+    }
+    foreach (@taggeroutput) {
     	chomp;
 	($tok,$tag)=split(/\t/,$_);
 	if (defined($tok)) {
@@ -147,7 +154,10 @@ sub tag {
 	    push(@words,$word);
 	}
     }
-    unlink "$main::tempfilelocation/$stamp.tmp" or print $log "\nCannot delete $main::tempfilelocation/$stamp.tmp\n" if $log;
+    #if (@words<1) {
+#	print $log "No output from tagger found\n" if $log;
+#    }
+#    unlink "$main::tempfilelocation/$stamp.tmp" or print $log "\nCannot delete $main::tempfilelocation/$stamp.tmp\n" if $log;
     $pkg->{words}=[@words];
 #     print $log "--------------\n" if $log;
 }

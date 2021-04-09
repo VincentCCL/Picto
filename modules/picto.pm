@@ -6,7 +6,8 @@
 
 #---------------------------------------
 
-$VERSION="3.2.1"; # 23.01.2019 Bug fix in generation of complex pictos
+$VERSION="3.3"; # 09.04.2021 openWordnet check + picto_sourcelang.pm only loaded if calling program is not JSON2Picto.pl
+#$VERSION="3.2.1"; # 23.01.2019 Bug fix in generation of complex pictos
 #$VERSION="3.2"; # 21.01.2019 Cleanup
 #$VERSION="3.1"; # 04.12.2018 Shorter version of addPictoSingle, addPictoComplex and addPictoAsDependent
                 # checks for url column in database table and retrieves url from there and puts it in picto object
@@ -46,7 +47,7 @@ print $log "picto.pm $VERSION loaded\n" if $log;
 
 
 require "$Bin/modules/$targetlanguage.pm";
-require "$Bin/modules/picto_".$sourcelanguage.".pm";
+unless ($0 eq 'JSON2Picto.pl') {require "$Bin/modules/picto_".$sourcelanguage.".pm";}
 
 #---------------------------------------
 package picto;
@@ -74,9 +75,9 @@ sub existNegative {
 
 sub adaptToPolarity {
     my ($pkg,$path)=@_;
-    $not=$pkg->getNot;
     my $db=$pkg->{wordnetdb};
     if (my $polarity=$pkg->{polarity}) {
+	my $nog=$pkg->getNot;
 	my $negdisplay=image->new(filename,$pkg->{target}->negativePicto,
 				  token,$not,
 				  wordnetdb,$db,
@@ -333,17 +334,19 @@ sub extendWithPicto {
     my ($pkg,$type,$word,$picto)=@_;
     $token=$word->{token};
     my $db=$pkg->{wordnetdb};
-    if (($picto->{number}) &&
-	($word->getNumber) &&
-	($picto->{number} ne $word->getNumber)) {
-	$picto->{pathlength}+=$main::wrongnumber;
-	$picto->{pathlength};
-    }
-    elsif ($word->getNumber eq $picto->{number}) {
-    }
-    else {
-	$picto->{pathlength}+=$main::nonumber;
-	$picto->{pathlength};
+    if ($word->can('getNumber')) {
+	if (($picto->{number}) &&
+	    ($word->getNumber) &&
+	    ($picto->{number} ne $word->getNumber)) {
+	    $picto->{pathlength}+=$main::wrongnumber;
+	    $picto->{pathlength};
+	}
+	elsif ($word->getNumber eq $picto->{number}) {
+	}
+	else {
+	    $picto->{pathlength}+=$main::nonumber;
+	    $picto->{pathlength};
+	}
     }
     my $display=image->new(filename,$picto->{file},
 			   token,$token,
@@ -459,6 +462,9 @@ sub addPictos {
     my ($pkg)=@_;
     my $sentences=$pkg->{sentences};
     my $wordnet=$pkg->{wordnetdb};
+    unless ($wordnet) {
+	$wordnet=$pkg->openWordnet;
+    }
     foreach (@$sentences) {
 	$_->{wordnetdb}=$wordnet;
 	$_->addPictos;
@@ -469,8 +475,6 @@ sub addPictos {
 package sentence;
 #---------------------------------------
 
-#my $stamp=time.$main::sessionid; ## WAT DOET DIT HIER?
-
 sub addPictos {
     &main::Maxtime;
     my ($pkg)=@_;
@@ -480,18 +484,23 @@ sub addPictos {
     for (my $i=0;$i<@$words;$i++) {
 	$flag=undef;
 	$words->[$i]->{wordnetdb}=$wordnetdb;
-	unless ($words->[$i]->addPictosNotInWordnet) {
-	    if ($words->[$i]->lookupPictoDictionary) {
-		$flag=1;
-	    };
-	    
-	    if ($words->[$i]->isContentWord($pkg)) {
-		$words->[$i]->addPictos;
-	    }
-	    elsif (!defined($flag)) {
-		my $tok=$words->[$i]->{token};
-		splice(@$words,$i,1);
-		$i--;
+	if ($0 eq 'JSON2Picto.pl') {  # added in 3.3
+	    $words->[$i]->addPictos;
+	}
+	else {
+	    unless ($words->[$i]->addPictosNotInWordnet) {
+		if ($words->[$i]->lookupPictoDictionary) {
+		    $flag=1;
+		};
+		
+		if ($words->[$i]->isContentWord($pkg)) {
+		    $words->[$i]->addPictos;
+		}
+		elsif (!defined($flag)) {
+		    my $tok=$words->[$i]->{token};
+		    splice(@$words,$i,1);
+		    $i--;
+		}
 	    }
 	}
     }
@@ -882,6 +891,7 @@ sub addPictos {
     }
     my $lexunits=$pkg->{lexunits};
     foreach (@$lexunits) {
+	unless ($_->{wordnetdb}) { $_->{wordnetdb}=$pkg->{wordnetdb}}
 	if (@$other_picto_singles>0) {
 	    $_->addPicto('nosingle');
 	}
@@ -968,6 +978,7 @@ sub addPicto {
     	$initpenal=0;
     }
     if ($pkg->{synset}) {
+	unless ($pkg->{synset}->{wordnetdb}) { $pkg->{synset}->{wordnetdb}=$pkg->{wordnetdb}}
 	$pkg->{synset}->addPicto($initpenal,$singleornot);
 	my $single=$pkg->{synset}->{picto_single};
 	if (@$single>0) {

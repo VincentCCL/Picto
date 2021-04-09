@@ -6,7 +6,8 @@
 
 #---------------------------------------
 
-$VERSION="1.1.6"; # 29/03/2021 removed use DB_File;
+$VERSION="1.2"; # 09.04.2021 openWordnet added
+#$VERSION="1.1.6"; # 29.03.2021 removed use DB_File;
 #$VERSION="1.1.5"; # Moved tmpfilelocations to GenericFunctions.pm
 #$VERSION="1.1.4"; # Make two tempfilelocations so it is possible to run a Beta-based script and a Sclera-based script at the same time for parameter tuning
 #$VERSION="1.1.3"; # 06.02.14 Adaptated logging
@@ -36,18 +37,6 @@ $VERSION="1.1.6"; # 29/03/2021 removed use DB_File;
 print $log "object.pm version $VERSION loaded\n" if $log;
 #---------------------------------------
 
-# if($main::targetlanguage eq 'sclera'){
-# 	$tempfilelocation="$Bin/../tmp/sclera/";
-# 	print $log "tempfilelocation: $tempfilelocation\n" if $log;
-# }
-# elsif($main::targetlanguage eq 'beta'){
-# 	$tempfilelocation="$Bin/../tmp/beta/";
-# 	print $log "tempfilelocation: $tempfilelocation\n" if $log;
-# }
-# else{
-# 	$tempfilelocation="$Bin/../tmp/";
-# 	print $log "tempfilelocation: $tempfilelocation\n" if $log;
-# }
 
 #---------------------------------------
 package object;
@@ -131,6 +120,19 @@ sub Space {
     }
     return $space;
 }
+
+sub openWordnet {
+    my ($pkg)=@_;
+    unless ($pkg->{wordnetdb}) {
+        my $db=DBI::db->new($main::database,
+                            $main::host,
+                            $main::port,
+                            $main::user,
+                            $main::pwd);
+        $pkg->{wordnetdb}=$db;
+    }
+}
+
 
 #---------------------------------------
 package message;

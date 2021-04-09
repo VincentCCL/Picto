@@ -1,8 +1,9 @@
 # GenericFunctions.pm
 1; #-------------------
 
-$VERSION="1.1";  # 29.03.2021 WSD only loaded when activated
-$VERSION="1.0"; # Initial version
+$VERSION="1.2"; # added hindi to the possible source languages and default value for hyperparameters when source and target language are not set
+#$VERSION="1.1";  # 29.03.2021 WSD only loaded when activated
+#$VERSION="1.0"; # Initial version
 # Default and configuration values
 
 use Getopt::Std;  
@@ -13,15 +14,17 @@ processOptions(%opts);
 1;
 
 sub LoadConfigPaths {
-  &LoadShallowProcessingConfig;
-  if ($wsdoption) {&LoadWSDConfig;}
-  # Location of compounding info for separable verbs
-  # Vandeghinste, V. (2002). Lexicon Optimization: Maximizing Lexical Coverage in Speech Recognition through Automated Compounding. In M. Rodríguez and C. Araujo (eds.), Proceedings of the 3rd International Conference on Language Resources and Evaluation (LREC). European Language Resources Association. Las Palmas, Spain.
-  if ($sourcelanguage eq 'dutch') {
-      require "$Bin/modules/shallow_dutch.pm"; 
-      &LoadShallowProcessingConfigDutch;
+  unless ($0 eq 'JSON2Picto') {  # only if the name of the calling script is not JSON2Picto
+      &LoadShallowProcessingConfig;
+      if ($wsdoption) {&LoadWSDConfig;}
+      # Location of compounding info for separable verbs
+      # Vandeghinste, V. (2002). Lexicon Optimization: Maximizing Lexical Coverage in Speech Recognition through Automated Compounding. In M. Rodríguez and C. Araujo (eds.), Proceedings of the 3rd International Conference on Language Resources and Evaluation (LREC). European Language Resources Association. Las Palmas, Spain.
+      if ($sourcelanguage eq 'dutch') {
+	  require "$Bin/modules/shallow_dutch.pm"; 
+	  &LoadShallowProcessingConfigDutch;
+      }
+      #$paralleloutput="$Bin/../tmp/output/ParallelOutput";  # What is this?
   }
-  $paralleloutput="$Bin/../tmp/output/ParallelOutput";  # What is this?
   $imgwidth=110;  # this should move to html_out
   $imgheigth=110; # this should move to html_out
 
@@ -75,7 +78,8 @@ sub LoadDefaultValues {
  $verbose{'s'}="-s Source language (dutch/english/spanish)";
  $options{'s'}={'dutch'   => 1,
                 'english' => 1,
-                'spanish' => 1};
+                'spanish' => 1,
+		'hindi' =>1};
 
  $default{'p'}='sclera';
  $verbose{'p'}="-p Target pictograph set (sclera/beta/rand)";
@@ -118,39 +122,48 @@ sub LoadDefaultValues {
  $verbose{'z'}="-z maxtime (seconds)";
 
  $default{'v'}={"dutch,beta"   => 2,
-               "dutch,sclera" => 8};
+               "dutch,sclera" => 8,
+		"" => 1};
  $verbose{'v'}="-v Out of Vocabulary penalty";
 
  $default{'w'}={"dutch,beta"   => 2,
-               "dutch,sclera" => 4};
+               "dutch,sclera" => 4,
+		"" =>1};
  $verbose{'w'}="-w Wrong number penalty";
 
  $default{'n'}={"dutch,beta"   => 9,
-               "dutch,sclera" => 6};
+               "dutch,sclera" => 6,
+		"" => 1};
  $verbose{'n'}="-n No Number penalty";
 
  $default{'h'}={"dutch,beta"   => 7,
-               "dutch,sclera" => 4};
+               "dutch,sclera" => 4,
+		"" => 1};
  $verbose{'h'}="-h Hyperonym penalty";
 
  $default{'k'}={"dutch,beta"   => 6,
-               "dutch,sclera" => 3};
+               "dutch,sclera" => 3,
+		"" => 1};
  $verbose{'k'}="-k XposNearSynonym penalty";
 
  $default{'a'}={"dutch,beta"   => 7,
-               "dutch,sclera" => 2};
+               "dutch,sclera" => 2,
+		"" => 1};
  $verbose{'a'}="-a Antonym penalty";
 
  $default{'f'}={"dutch,beta"   => 8,
-               "dutch,sclera" => 11};
+               "dutch,sclera" => 11,
+		"" => 8};
  $verbose{'f'}="-f Penalty Threshold";
 
  $default{'d'}={"dutch,beta"   => 5,
-               "dutch,sclera" => 3};
+               "dutch,sclera" => 3,
+		""=> 1};
  $verbose{'d'}="-d Dictionary Advantage";
 
  $default{'r'}={"dutch,beta"   => 2,
-               "dutch,sclera" => 2};
+               "dutch,sclera" => 2, 
+		"" => 1};
  $verbose{'r'}="-r WSD weight";
 
  # database parameters
@@ -180,10 +193,14 @@ sub processOptions {
     unless ($opts{$_}) {
       if (ref($default{$_}) eq 'HASH') {
         $key="$opts{'s'},$opts{'p'}";
-        $value=$default{$_}->{$key};
-        $opts{$_}=$value;
-        print STDERR "$verbose{$_} set to default '$value'\n";
-        print $log "$verbose{$_} set to default '$value'\n" if $log;
+        if ($value=$default{$_}->{$key}) {
+	    $opts{$_}=$value;
+	}
+	else {
+	    $value=$default{$_}->{''};
+	}
+	print STDERR "$verbose{$_} set to default '$value'\n";
+	print $log "$verbose{$_} set to default '$value'\n" if $log;
       }
       else {
         $opts{$_}=$default{$_};

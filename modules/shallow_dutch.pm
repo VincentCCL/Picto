@@ -122,22 +122,16 @@ sub tag {
     my $stamp=time.$main::sessionid;
     my $log=$pkg->{logfile};
     print $log "\nPart of Speech Tagging\n" if $log;
-    my $tmpfilename=$main::tempfilelocation."/".$stamp;
-    open (TMP,">$tmpfilename") or print $log "Can't open $tmpfilename for tagger input\n" if $log;# or die;
     my $words=$pkg->{words};
+    my @tokens;
     foreach (@$words) {
-    	$token=$_->{token};
-    	print TMP "$token\n";
+     	push(@tokens,$_->{token});
     }
-    close TMP;
-    #my $systemcommand="$main::hunposlocation/hunpos-tag $main::hunpostraining < $main::tempfilelocation/$stamp > $main::tempfilelocation/$stamp.tmp";
-    my $systemcommand="$main::hunposlocation/hunpos-tag $main::hunpostraining < $tmpfilename";
+    my $wordstring=join("\n",@tokens);
+    my $systemcommand="echo \$\'$wordstring\' | $main::hunposlocation/hunpos-tag $main::hunpostraining";
     print $log "$systemcommand\n" if $log;
     @taggeroutput=`$systemcommand`;
-    #unlink "$main::tempfilelocation/$stamp" or print $log "\nCannot delete $main::tempfilelocation/$stamp.tmp\n" if $log;
-    #open (TMP,"$main::tempfilelocation/$stamp.tmp") or print $log "Can't open $main::tempfilelocation/$stamp.tmp" if $log or die;
-    my @words;
-    #while (<TMP>) {
+    if ($!=~/./) { print $log $! if $log;}
     if (@taggeroutput<1) {
 	print $log "Tagger does not provide output\n" if $log;
     }
@@ -145,7 +139,7 @@ sub tag {
     	chomp;
 	($tok,$tag)=split(/\t/,$_);
 	if (defined($tok)) {
-# 	    print $log "\t$tok\t$tag\n" if $log;
+ 	    print $log "\t$tok\t$tag\n" if $log;
 	    $word=word->new(logfile,$pkg->{logfile},
 			    target,$pkg->{target},
 			    token,$tok,
@@ -154,12 +148,8 @@ sub tag {
 	    push(@words,$word);
 	}
     }
-    #if (@words<1) {
-#	print $log "No output from tagger found\n" if $log;
-#    }
-#    unlink "$main::tempfilelocation/$stamp.tmp" or print $log "\nCannot delete $main::tempfilelocation/$stamp.tmp\n" if $log;
     $pkg->{words}=[@words];
-#     print $log "--------------\n" if $log;
+    print $log "--------------\n" if $log;
 }
 
 #---------------------------------------

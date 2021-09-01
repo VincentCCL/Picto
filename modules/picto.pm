@@ -47,7 +47,7 @@ print $log "picto.pm $VERSION loaded\n" if $log;
 
 
 require "$Bin/modules/$targetlanguage.pm";
-unless ($0 eq 'JSON2Picto.pl') {require "$Bin/modules/picto_".$sourcelanguage.".pm";}
+unless ($0=~/JSON2Picto.pl/) {require "$Bin/modules/picto_".$sourcelanguage.".pm";}
 
 #---------------------------------------
 package picto;
@@ -484,7 +484,7 @@ sub addPictos {
     for (my $i=0;$i<@$words;$i++) {
 	$flag=undef;
 	$words->[$i]->{wordnetdb}=$wordnetdb;
-	if ($0 eq 'JSON2Picto.pl') {  # added in 3.3
+	if ($0=~/JSON2Picto.pl/) {  # added in 3.3
 	    $words->[$i]->addPictos;
 	}
 	else {

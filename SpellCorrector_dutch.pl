@@ -23,8 +23,8 @@ use FindBin qw($Bin);
 use DB_File;
 use Encode qw(decode);
 
-require "$Bin/FindCharacterRules.pm";
-require "$Bin/GenericFunctionsSpellcheck.pm";
+require "$Bin/modules/FindCharacterRules.pm";
+require "$Bin/modules/GenericFunctionsSpellcheck.pm";
 
 #---------------------------------------
 

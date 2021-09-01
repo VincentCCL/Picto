@@ -81,10 +81,10 @@ sub LoadDefaultParameters {
   $default{'v'}="$Bin/../data/total.freqs.db";
   $verbose{'v'}="Frequency database";
  
-  $default{'w'}="$Bin/../Wordbuilder/SingleWordSplitter.pl";
+  $default{'w'}="$Bin/modules/Wordbuilder/SingleWordSplitter.pl";
   $verbose{'w'}="Word splitter script";
 
-  $default{'x'}="$Bin/../Wordbuilder/outputsplitter";
+  $default{'x'}="$Bin/modules/Wordbuilder/outputsplitter";
   $verbose{'x'}="Output location for word splitter";
 
   $default{'y'}="$Bin/../tmp/spellcheck/inputfuzzymatch";
@@ -105,10 +105,10 @@ sub LoadDefaultParameters {
   $default{'D'}=".";
   $verbose{'D'}="Location of the directory that contains get_nbest_matches.awk and the SALM directory";
 
-  $default{'F'}="$Bin/object.pm";
+  $default{'F'}="$Bin/modules/object.pm";
   $verbose{'F'}="Location of object.pm";
 
-  $default{'G'}="$Bin/Database.pm";
+  $default{'G'}="$Bin/modules/Database.pm";
   $verbose{'G'}="Location of Database.pm";
 }
 

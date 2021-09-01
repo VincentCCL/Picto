@@ -18,14 +18,6 @@ $VERSION="0.2"; # 08.02.2019 VV. Making the whole thing more language independen
 
 1;
 
-#Locations
-
-# our $wsdinput="$Bin/../tmp/wsd/wsdinput";
-# our $wsdoutput="$Bin/../tmp/wsd/wsdoutput";
-# our $wsdconvertedoutput="$Bin/../tmp/wsd/wsdconvertedoutput";
-# our $wsdtool="$Bin/../DutchWSD/svm_wsd-master/dsc_wsd_tagger.py"; 
-# our $wsdconverter="$Bin/TwigDutchSemCor.pl";
-
 #---------------------------------------
 package message;
 #---------------------------------------
@@ -44,27 +36,22 @@ sub englishwsd {  # THESE ARE NOT IMPLEMENTED (YET)
 sub spanishwsd { # THESE ARE NOT IMPLEMENTED (YET)
 }
 ########## DUTCH  ##################
-#sub CornettoWsd {
 sub dutchwsd {
     my ($pkg)=@_;
     $pkg->createNewTextAndLabelObjects;
-    #if($main::wsdoption eq "on"){
-	    $pkg->generateWsdInputFile;
-	    $pkg->useWsdTool;
-	    $pkg->convertWsd;
-	    $pkg->addWsdScores;	
-    #}
+    $pkg->generateWsdInputFile;
+    $pkg->useWsdTool;
+    $pkg->convertWsd;
+    $pkg->addWsdScores;	
 }
 
 sub createNewTextAndLabelObjects {
   my ($pkg)=@_; 
   my $i=0;
   my @arrayofsentences;
-#   my $target=$pkg->{target};
   my $sentences=$pkg->{sentences};
   foreach (@$sentences){
 	$_->{sentenceid}=$i;
-# 	$sentence->{target}=$target;
 	my $words=$_->{words};
 	my @arrayofwords;
 	foreach $word(@$words){

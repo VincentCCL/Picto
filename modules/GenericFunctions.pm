@@ -188,6 +188,9 @@ sub processOptions {
     print $log "\nOptions & Parameters\n" if $log;
     print $log "=====================\n" if $log;
   }
+  else {
+      $log=\*STDERR;
+  }
   foreach ('s','o','p',sort keys %default) { 
   # we first process -s source, -o output mode, -p pictograph set
     unless ($opts{$_}) {

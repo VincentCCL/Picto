@@ -2,6 +2,7 @@
 #
 # written by Vincent Vandeghinste
 #
+# version 0.4  15.10.2021 added FindBin
 # version 0.3
 # 09.06.2004 default return value added if no entry found
 # version 0.2
@@ -11,12 +12,12 @@
 #
 # gets a word as its first argument
 # returns the words lemma
+
+use FindBin qw($Bin);  # Added in 0.4
 use DB_File;
 
-#$lexicon_location="/home/pricie/vincent/Lingware/Data/Lexical/DB";
-#$lexicon_filename="cgn_lexicon.db";
 $word=shift(@ARGV);
-tie %CGN,"DB_File","home/pricie/vincent/Lingware/Data/Lexical/DB/cgn_lexicon.db"; 
+tie %CGN,"DB_File","$Bin/data/cgn_lexicon.db"; 
 
 while ($CGN{"$word"}) {
     ($tag,$lemma)=split(/\t/,$CGN{"$word"});

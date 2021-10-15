@@ -76,7 +76,7 @@ sub find_quasi {
 sub Get_Lemma {
 ##################################
     my ($word)=@_;
-    my @lemmata=`perl /home/pricie/leen/Documents/Werk/Scripts/Wordbuilder/Lemmatizer.pl "$word"`;
+    my @lemmata=`perl $Bin/Lemmatizer.pl "$word"`;
     chop(@lemmata);
     foreach $lemma (@lemmata) {
 	if ($lemma eq 'zijn') {

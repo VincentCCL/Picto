@@ -1,0 +1,26 @@
+% precision (arasaac, sclera, beta)	73.0	39.473684210526315	45.94594594594595
+% recall (arasaac, sclera, beta)	100.0	76.0	74.0
+% fscore (arasaac, sclera, beta)	84.39306358381504	51.95989061075661	56.69220369535827
+
+% precision relative improv.	32.6
+% recall relative improv.	1.0
+% fscore relative improv.	27.203063583815037
+
+# wordToDisambiguate (arasaac, sclera, beta)	100
+# translated words (arasaac)	100
+# untranslated words (arasaac)	0
+untranslated words (arasaac)	[]
+
+# oktranslated words (arasaac)	73
+oktranslated words (arasaac)	['alcool', 'crème', 'opérer', 'café', 'eau', 'interprète', 'répondre', 'doigt', 'voir', 'cœur', 'vert', 'faire', 'chambre', 'penser', 'boire', 'mesurer', 'corps', 'protéger', 'sentir', 'foie', 'gratter', 'pilule', 'venir', 'beaucoup', 'souvent', 'document', 'entendre', 'traduire', 'soulager', 'mois', 'campagne', 'consommer', 'visage', 'légume', 'marcher', "aujourd''hui", 'vouloir', 'asseoir', 'pâte', 'poitrine', 'opération', 'enfant', 'masque', 'contraception', 'membre', 'repos', 'travail', 'rincer', 'question', 'avant', 'partie', 'maison', 'soleil', 'température', 'organe', 'seconde', 'place', 'cuisse', 'terminer', 'donner', 'accouchement', 'lentille', 'rester', 'soulever', 'date', 'fatiguer', 'vie', 'situer', 'actuellement', 'heure', 'canne', 'faible', 'flotter']
+
+# badtranslated words (arasaac)	27
+badtranslated words (arasaac)	['perdre', 'examiner', 'appliquer', 'prévoir', 'utiliser', 'laver', 'savoir', 'famille', 'vomir', 'alimentation', 'tomber', 'autre', 'endroit', 'drôle', 'mètre', 'âge', 'amener', 'petit', 'côte', 'cheville', 'seringue', 'poids', 'scanner', 'sœur', 'présenter', 'mouvement', 'tourner']
+
+# picto (arasaac, sclera, beta)	334	113	80
+# picto (all)	527
+# no picto (all)	0
+
+Arasaac picto	['v', 'v', 'x', 'v', 'v', 'v', 'v', 'v', 'v', 'v', 'v', 'v', 'v', 'x', 'x', 'v', 'v', 'v', 'v', 'x', 'v', 'v', 'x', 'x', 'v', 'v', 'v', 'v', 'v', 'v', 'v', 'x', 'v', 'v', 'v', 'x', 'v', 'x', 'v', 'v', 'v', 'v', 'v', 'x', 'x', 'v', 'v', 'v', 'x', 'x', 'v', 'v', 'v', 'x', 'v', 'x', 'x', 'v', 'x', 'v', 'v', 'v', 'v', 'x', 'v', 'v', 'x', 'v', 'v', 'v', 'v', 'x', 'x', 'v', 'x', 'v', 'v', 'v', 'v', 'v', 'v', 'v', 'v', 'v', 'v', 'v', 'v', 'v', 'x', 'v', 'v', 'x', 'v', 'v', 'x', 'v', 'x', 'v', 'v', 'x']
+Sclera picto	['v', 'x', 'y', 'y', 'v', 'y', 'y', 'v', 'x', 'v', 'x', 'x', 'x', 'y', 'x', 'v', 'v', 'x', 'v', 'v', 'x', 'y', 'y', 'x', 'v', 'y', 'x', 'v', 'x', 'y', 'y', 'x', 'v', 'v', 'v', 'x', 'x', 'x', 'v', 'v', 'y', 'y', 'v', 'v', 'x', 'v', 'x', 'x', 'x', 'x', 'x', 'v', 'x', 'y', 'v', 'y', 'y', 'x', 'x', 'v', 'y', 'y', 'x', 'v', 'x', 'x', 'x', 'v', 'x', 'x', 'x', 'y', 'v', 'y', 'x', 'x', 'x', 'x', 'v', 'y', 'v', 'x', 'y', 'x', 'x', 'x', 'x', 'x', 'y', 'y', 'y', 'v', 'v', 'v', 'x', 'v', 'x', 'x', 'x', 'x']
+Beta picto	['y', 'y', 'x', 'y', 'v', 'v', 'y', 'v', 'v', 'v', 'v', 'x', 'x', 'y', 'x', 'v', 'v', 'v', 'x', 'x', 'v', 'y', 'y', 'v', 'x', 'y', 'x', 'y', 'x', 'y', 'y', 'x', 'y', 'v', 'y', 'x', 'x', 'x', 'v', 'v', 'v', 'v', 'v', 'v', 'x', 'v', 'x', 'v', 'x', 'x', 'x', 'v', 'v', 'y', 'v', 'y', 'y', 'x', 'x', 'v', 'y', 'x', 'x', 'x', 'x', 'x', 'x', 'y', 'x', 'x', 'v', 'x', 'v', 'v', 'x', 'x', 'y', 'v', 'v', 'y', 'x', 'x', 'y', 'y', 'x', 'x', 'x', 'y', 'y', 'y', 'y', 'v', 'v', 'v', 'x', 'v', 'v', 'x', 'x', 'x']

@@ -29,10 +29,10 @@ Magali Norré, Rémi Cardon, Vincent Vandeghinste, and Thomas François. (2023).
 ## Resources:
 
 Require to create folders, download (and rename some) French pre-trained models used in wsd.py and wsd2.py:
-- [Word2Vec frWac2Vec & frWiki2Vec](https://fauconnier.github.io) (folder: model_frwac2vec-frwiki2vec, options of wsd(2).py: 1-5)
-- [fastText Common Crawl + Wikipedia](https://fasttext.cc/docs/en/crawl-vectors.html) (French bin, cc.fr.300.bin, folder: model_cc-fr, 6-10)
-- [CLEAR corpus](http://natalia.grabar.free.fr/resources.php#clear) (folder: model_clear, 4-5 and 7-10)
-- [CamemBERT](https://camembert-model.fr) (11)
-- [FlauBERT](https://github.com/getalp/Flaubert) (12)
-- [DrBERT](https://drbert.univ-avignon.fr) (13)
-- [CamemBERT-bio](https://huggingface.co/almanach/camembert-bio-base) (14)
+- [Word2Vec frWac2Vec & frWiki2Vec](https://fauconnier.github.io) (folder: model_frwac2vec-frwiki2vec, options of wsd(2).py: 1-3)
+- [fastText Common Crawl + Wikipedia](https://fasttext.cc/docs/en/crawl-vectors.html) (French bin, cc.fr.300.bin, folder: model_cc-fr, option 6)
+- [CLEAR corpus](http://natalia.grabar.free.fr/resources.php#clear) (folder: model_clear, options 4-5 and 7-10)
+- [CamemBERT](https://camembert-model.fr) (option 11)
+- [FlauBERT](https://github.com/getalp/Flaubert) (option 12)
+- [DrBERT](https://drbert.univ-avignon.fr) (option 13)
+- [CamemBERT-bio](https://huggingface.co/almanach/camembert-bio-base) (option 14)

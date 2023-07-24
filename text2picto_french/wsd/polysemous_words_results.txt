@@ -2,9 +2,9 @@
 % recall (arasaac, sclera, beta)	100.0	76.0	74.0
 % fscore (arasaac, sclera, beta)	84.39306358381504	51.95989061075661	56.69220369535827
 
-% precision relative improv.	32.6
+% precision relative improv.	37.65
 % recall relative improv.	1.0
-% fscore relative improv.	27.203063583815037
+% fscore relative improv.	32.30306358381503
 
 # wordToDisambiguate (arasaac, sclera, beta)	100
 # translated words (arasaac)	100

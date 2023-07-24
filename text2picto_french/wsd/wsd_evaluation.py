@@ -21,12 +21,12 @@ fsore_arasaac, fsore_sclera, fsore_beta = 0, 0, 0
 recall_baseline_arasaac = 99 #with Text-to-Picto v. 2.1 (oov_3 wrongnum_4 nonum_9 hyper_15 xpos_8 anto_10 penal_9 dict_2)
 #recall_baseline_arasaac, recall_baseline_sclera, recall_baseline_beta = 99, ?, ?
 recall_rel_improv_arasaac, recall_rel_improv_sclera, recall_rel_improv_beta = 0, 0, 0
-precision_baseline_arasaac = 40.4 #with Text-to-Picto v. 2.1 (oov_3 wrongnum_4 nonum_9 hyper_15 xpos_8 anto_10 penal_9 dict_2)
-#precision_baseline_arasaac, precision_baseline_slera, precision_baseline_beta = 40.4, ?, ?
+precision_baseline_arasaac = 35.35 #with Text-to-Picto v. 2.1 (oov_3 wrongnum_4 nonum_9 hyper_15 xpos_8 anto_10 penal_9 dict_2)
+#precision_baseline_arasaac, precision_baseline_slera, precision_baseline_beta = 35.35, ?, ?
 precision_rel_improv_arasaac, precision_rel_improv_sclera, precision_rel_improv_beta = 0, 0, 0
 
-fscore_baseline_arasaac = 57.19 #with Text-to-Picto v. 2.1 (oov_3 wrongnum_4 nonum_9 hyper_15 xpos_8 anto_10 penal_9 dict_2)
-#fscore_baseline_arasaac, fscore_baseline_slera, fscore_baseline_beta = 69.69, ?, ?
+fscore_baseline_arasaac = 52.09 #with Text-to-Picto v. 2.1 (oov_3 wrongnum_4 nonum_9 hyper_15 xpos_8 anto_10 penal_9 dict_2)
+#fscore_baseline_arasaac, fscore_baseline_slera, fscore_baseline_beta = 52.09, ?, ?
 fscore_rel_improv_arasaac, fscore_rel_improv_sclera, fscore_rel_improv_beta = 0, 0, 0
 
 count_all, count_arasaac, count_sclera, count_beta = 0, 0, 0, 0

@@ -29,8 +29,7 @@ from svmutil import *
 
 __version = '1.2'
 __modified = '20jan2015'
-TREETAGGER='/home/paco/web/picto/script/TreeTagger'
-#TREETAGGER='SOMETHING'
+TREETAGGER='modules/DutchWSD/TreeTagger'
 POS_NOUN = 'n'
 POS_VERB = 'v'
 POS_ADJ = 'a'

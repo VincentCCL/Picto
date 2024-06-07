@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# Set these paths appropriately
+
+BIN=/home/pricie/leen/Documents/Werk/Resources/TreeTagger/bin
+CMD=/home/pricie/leen/Documents/Werk/Resources/TreeTagger/cmd
+LIB=/home/pricie/leen/Documents/Werk/Resources/TreeTagger/lib
+
+OPTIONS="-token -lemma -sgml"
+
+TAGGER=${BIN}/tree-tagger
+TOKENIZER=${CMD}/utf8-tokenize.perl
+PARFILE=${LIB}/slovak-utf8.par
+
+$TOKENIZER $* |
+$TAGGER $OPTIONS $PARFILE

@@ -25,16 +25,16 @@ $alpino{'server'}="jerom 11222"; # contains the server and port for alpino serve
 # }
 
 
-$path{'e'}="$Bin/../data/Regels_V2_1ww.txt";
+$path{'e'}="$Bin/data/dutch/Regels_V2_1ww.txt";
 $verbose{'e'}="-e Rules for verb group consisting of 1 verb";
 
-$path{'f'}="$Bin/../data/Regels_V2_2ww.txt";
+$path{'f'}="$Bin/data/dutch/Regels_V2_2ww.txt";
 $verbose{'f'}="-f Rules for verb group consisting of 2 verbs";
 
-$path{'g'}="$Bin/../data/Regels_V2_3ww.txt";
+$path{'g'}="$Bin/data/dutch/Regels_V2_3ww.txt";
 $verbose{'g'}="-g Rules for verb group consisting of 3 verbs";
 
-$path{'h'}="$Bin/../../Picto2.0/data/firstnames.db";
+$path{'h'}="$Bin/data/dutch/firstnames.db";
 $verbose{'h'}="-h First names lexicon";
 
 # Alpino parser timeout parameter

@@ -72,13 +72,13 @@ sub LoadDefaultParameters {
 
 # Paths to files
 
-  $default{'t'}="$Bin/../data/spellchecklex.db";
+  $default{'t'}="$Bin/data/dutch/spellchecklex.db";
   $verbose{'t'}="Spell check lexicon";
  
-  $default{'u'}="$Bin/../data/firstnames.db";
+  $default{'u'}="$Bin/data/dutch/firstnames.db";
   $verbose{'u'}="First names lexicon";
 
-  $default{'v'}="$Bin/../data/total.freqs.db";
+  $default{'v'}="$Bin/data/dutch/total.freqs.db";
   $verbose{'v'}="Frequency database";
  
   $default{'w'}="$Bin/modules/Wordbuilder/SingleWordSplitter.pl";
@@ -96,7 +96,7 @@ sub LoadDefaultParameters {
   $default{'A'}="$Bin/get_approxquerycov_matches.bash";
   $verbose{'A'}="Fuzzy matching script";
 
-  $default{'B'}="$Bin/../data/CGNCorpusSplit.txt";
+  $default{'B'}="$Bin/data/dutch/CGNCorpusSplit.txt";
   $verbose{'B'}="Location of tokenised corpus";
 
   $default{'C'}="$Bin/../tmp/fuzzy";

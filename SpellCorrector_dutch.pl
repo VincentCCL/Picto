@@ -1,10 +1,8 @@
-####### SpellCorrector_dutch.pl ##########
+####### SpellCorrector_cornetto.pl ##########
 
 # By Leen Sevens 
 # leen@ccl.kuleuven.be 
 # Date: 14.01.2016
-
-#!/bin/bash
 
 #---------------------------------------
 
@@ -18,43 +16,90 @@
 
 #---------------------------------------
 
+# Libraries
+
 use Getopt::Std;
 use FindBin qw($Bin); 
 use DB_File;
-use Encode qw(decode);
+use Encode;
 
+require "$Bin/modules/object.pm";
 require "$Bin/modules/FindCharacterRules.pm";
-require "$Bin/modules/GenericFunctionsSpellcheck.pm";
+require "$Bin/modules/Database.pm";
+
+tie %lexicon,"DB_File","home/leen/Picto2.0/data/total.freqs.db"; 
+
+my @dictionaryarray = (",","!","?","hey","hallo","groetjes","sebiet","zijt","chat","chatten");
 
 #---------------------------------------
 
-# Parameters
+# Language model database
 
-getopt("abcdefghijklmnopqrstuvwxyzABCDEFGH",\%opts);
-processOptionsSpellcheck(%opts);
+our $db="dutch_lm_large";
+our $host="gobelijn";
+our $port="5432";
+our $user="vincent";
+our $pwd="vincent";
+our $dutch_lm=DBI::db->new($db,$host,$port,$user,$pwd);
 
-require $objectpm;
-require $databasepm;
+#----------------------------------------
 
-our $spellcheckdatabase=DBI::db->new($pictodatabase,$pictohost,$pictoport,$pictouser,$pictopwd);
-our $dutch_lm=DBI::db->new($lmdatabase,$lmhost,$lmport,$lmuser,$lmpwd);
+# PARAMETERS
 
-tie %SPELLCHECKLEX,"DB_File",$spellchecklexfile;
-tie %FIRSTNAMES,"DB_File",$firstnamesfile; 
-tie %lexicon,"DB_File",$lexiconfile;
+getopt("abcdefghi",\%opts);
+unless (defined($wordbuilderpenalty1=$opts{a})) {
+	$wordbuilderpenalty1=210;
+}
+unless (defined($wordbuilderpenalty2=$opts{b})) {
+	$wordbuilderpenalty2=120;
+}
+unless (defined($realwordminimumfrequency=$opts{c})) {
+	$realwordminimumfrequency=100;
+}
+unless (defined($ngramlength=$opts{d})) {
+	$ngramlength=8;
+}
+unless (defined($minimumscore=$opts{e})) {
+	$minimumscore=0.2;
+}
+unless (defined($wordsplitterpenalty=$opts{f})) {
+	$wordsplitterpenalty=1760;
+}
+unless (defined($frequencyretainvariant=$opts{g})) {
+	$frequencyretainvariant=220;
+}
+unless (defined($highestfreqthresh=$opts{h})) {
+	$highestfreqthresh=100;
+}
+unless (defined($wordsplitterpenalty2=$opts{i})) {
+	$wordsplitterpenalty2=1680;
+}
+
+#---------------------------------------
+
+# MAIN PROGRAM
+
+$maxlengthwordinspellcheck=30;
+tie %SPELLCHECKLEX,"DB_File","$Bin/data/dutch/spellchecklex.db";
+tie %FIRSTNAMES,"DB_File","$Bin/data/dutch/firstnames.db"; 
+tie %lexicon,"DB_File","$Bin/data/dutch/total.freqs.db";
 
 our $stamp=time;
 
-#---------------------------------------
+our $singlewordsplitter="$Bin/modules/Wordbuilder/SingleWordSplitter.pl";
+our $outputforsinglewordsplitter="$Bin/modules/Wordbuilder/outputsplitter";
 
-# Main program
+our $inputfuzzymatch="$Bin/../tmp/spellcheck/inputfuzzymatch";
+our $outputfuzzymatch="$Bin/../tmp/spellcheck/outputfuzzymatch";
+our $fuzzymatcher="$Bin/modules/get_approxquerycov_matches.bash";
+our $tokenizedcorpus="$Bin/data/dutch/CGNCorpusSplit.txt";
 
 $in=shift(@ARGV);
 $sessionid=shift(@ARGV);
 $message=message->new(text,$in,
 		      logfile,\*LOG);
-$message->compoundWords; 
-$message->addExtraStops;
+$message->wordBuilder; 
+$message->tokenize; 
 $message->detectSentences; 
 $message->spellcheck; 
 print "\n";
@@ -63,7 +108,7 @@ print "\n";
 package message;
 #---------------------------------------
 
-sub compoundWords{
+sub wordBuilder{
     my ($pkg)=@_;
     my $message=$pkg->{text};
     my $newmessage;
@@ -71,8 +116,8 @@ sub compoundWords{
     my @messagewords=split(/[ ]+/,$message);
     for(my $i=0;$i<@messagewords;$i++){
 	    	$newword=$messagewords[$i].$messagewords[$i+1];
-		if ($main::lexicon{$newword} > $main::wordbuilderpenalty1){ 
-			if(($main::lexicon{$messagewords[$i]} < $main::wordbuilderpenalty2) || ($main::lexicon{$messagewords[$i+1]} < $main::wordbuilderpenalty2)){ 
+		if ($main::lexicon{$newword} > $main::wordbuilderpenalty1){ # When the compound word appears more than x times in the lexicon
+			if(($main::lexicon{$messagewords[$i]} < $main::wordbuilderpenalty2) || ($main::lexicon{$messagewords[$i+1]} < $main::wordbuilderpenalty2)){ # And at least one of the separate parts less than y times
 				$newmessage="$newmessage $newword";
 				$i++;
 			}
@@ -86,34 +131,6 @@ sub compoundWords{
     } 
     $newmessage=~s/^ ((.)*)/$1/g;
     $pkg->{text}=$newmessage;
-}
-
-sub addExtraStops{
-    my ($pkg)=@_;
-    my $text=$pkg->{text};
-    $text=~s/\./ ./ig;
-    $text=~s/\?/ ?/ig;
-    $text=~s/\!/ !/ig;
-    my @words=split(/\s/,$text);
-    my $i=1;
-    my $newstring="";
-    foreach $word(@words){
-	    if($i eq "20"){
-		$word="$word.";
-		$newstring="$newstring $word";
-		$i=1;
-	    }
-	    elsif (($word eq ".") || ($word eq "?") || ($word eq "!")){
-		$newstring="$newstring $word";
-		$i=1;
-	    }
-	    else{
-		$newstring="$newstring $word";
-		$i++;
-	    }
-    }
-    $newstring=~s/^ //ig;
-    $pkg->{text}=$newstring;
 }
 
 sub detectSentences {
@@ -157,38 +174,47 @@ sub spellcheck{
 	my ($pkg)=@_;
 	my $sentences=$pkg->{sentences};
 	foreach(@$sentences){
-	  $_->spellCheck;
-        }
+		$_->removeCapitalFirstWord; # Lowercase the first word of each sentence so we can look it up in the lexicon
+		$_->changeAllUpperCaseToLower; # Some people write in ALL uppercase - convert to lowercase first
+		$_->removeFlooding; # Tackle "flooding" (i.e., more than 2 identical characters in sequence, reduce it to max. 2 characters)
+		$_->convertContractionsAndCommonAbbreviations; # Tackle some commonly appearing contractions and abbreviations
+		$_->findNonWords; # What are the non-words and what are the real words?
+		$_->findVariants; # The actual variant generation step
+		$_->filterVariants; # Based on the language model, non-occurring combinations of variants are thrown away
+		$_->buildAllSentences; # Create all possible combinations of variants - this results in a number of hypotheses
+		$_->makeSplitSentences; # Split the hypotheses into characters (pre-processing step for the character-based fuzzy match)
+		$_->fuzzyMatch; # Fuzzy matching and best hypothesis selection
+	}
 }
-
 
 #---------------------------------------
 package sentence;
 #---------------------------------------
 
-sub spellCheck {
-  my ($pkg)=@_;
-  $pkg->removeCapitalOfFirstWord; # Lowercase the first word
-  $pkg->changeUppercaseSequenceToLowercase; # Convert words consisting of only uppercase characters to lowercase characters
-  $pkg->reduceFlooding; # Reduce "flooding" (i.e., when more than 2 identical characters appear in sequence, reduce the sequence to a maximum of 2 characters)
-  $pkg->convertCommonAbbreviations; # Deal with a number of commonly appearing contractions and abbreviations (chatspeak-style text)
-  $pkg->findNonWords; # Define what are the non-words and what are the real words
-  $pkg->findVariants; # The actual variant generation step
-  $pkg->filterVariants; # Based on a Dutch trigram language model, some rarely occurring combinations of variants are thrown away (in order to avoid combinatory explosion)
-  $pkg->buildHypothesisSentences; # Create all possible combinations of variants; this results in a number of hypotheses
-  $pkg->createSplitSentences; # Split the hypotheses into characters (pre-processing step for the character-based fuzzy matching)
-  $pkg->performFuzzyMatch; # Fuzzy matching and best hypothesis selection
-}
-
-sub removeCapitalOfFirstWord{
+sub convertContractionsAndCommonAbbreviations{
     my ($pkg)=@_;
     my $words=$pkg->{words};
-    my $firsttoken=lc(@$words[0]->{token});
+    foreach $word(@$words) {
+	$token=$word->{token};
+	$token=~s/^da$/dat/;
+	$token=~s/^wa$/wat/;
+	$token=~s/^nr$/nummer/;
+	$token=~s/^das$/dat is/;
+	$token=~s/^ist$/is het/;
+	$token=~s/^tis$/het is/;
+	$word->{token}=$token;
+    }
+}
+
+sub removeCapitalFirstWord{
+    my ($pkg)=@_;
+    my $words=$pkg->{words};
+    $firsttoken=lc(@$words[0]->{token});
     delete @$words[0]->{token};
     @$words[0]->{token}=$firsttoken;
 }
 
-sub changeUppercaseSequenceToLowercase{
+sub changeAllUpperCaseToLower{
     my ($pkg)=@_;
     my $words=$pkg->{words};
     foreach $word(@$words){
@@ -201,27 +227,13 @@ sub changeUppercaseSequenceToLowercase{
     }
 }
 
-sub reduceFlooding{
+sub removeFlooding{
     my ($pkg)=@_;
     my $words=$pkg->{words};
     foreach (@$words) {
 	$token=$_->{token};
     	$token=~s/((.)\2{2,})/$2$2/ig;
 	$_->{token}=$token;
-    }
-}
-
-sub convertCommonAbbreviations{
-    my ($pkg)=@_;
-    my $words=$pkg->{words};
-    foreach $word(@$words) {
-	$token=$word->{token};
-	$token=~s/^da$/dat/;
-	$token=~s/^wa$/wat/;
-	$token=~s/^nr$/nummer/;
-	$token=~s/^ist$/is het/;
-	$token=~s/^tis$/het is/;
-	$word->{token}=$token;
     }
 }
 
@@ -236,43 +248,34 @@ sub findNonWords {
 sub findVariants {
     my ($pkg)=@_;
     my $words=$pkg->{words};
-    my $dictionary={","  => 1,
-                    "!"  => 1,
-                    "?"  => 1,
-                    "hey" => 1,
-                    "hallo" => 1,
-                    "groetjes" => 1,
-                    "sebiet" => 1,
-                    "zijt" => 1,
-                    "chat" => 1,
-                    "chatten" => 1};
-    foreach my $word_object (@$words) {
-	my $spellcheck=$word_object->{spellcheck}; 
-	my $word=$word_object->{token};
-        my @alternatives=();	
-	my $frequency=$main::lexicon{$word};
+    foreach $words(@$words) {
+	my $spellcheck=$words->{spellcheck};
+	my $word=$words->{token};
+	$frequency=$main::lexicon{$word};
 	chomp $frequency;
-	unless ($dictionary->{$word} or $word=~/(\d)+/) {
-			unless (($spellcheck eq "Real") && (($frequency>$main::realwordminimumfrequency) ||  ($main::FIRSTNAMES{$word}))) { 
-				push(@alternatives,$word_object->findPhoneticVariants); # Cognitive errors
-				my @possiblealternatives;
-				unless(@alternatives){ # Typographic errors
-					push(@alternatives,$word_object->wordSplitter); 
-					push(@possiblealternatives,$word_object->findOneInsertion); 
-					push(@possiblealternatives,$word_object->findOneDeletion);
-					push(@possiblealternatives,$word_object->findOneSubstitution);
-					push(@possiblealternatives,$word_object->findOneTransposition);
-					push(@alternatives,$word_object->returnRealWordAlternatives(@possiblealternatives)); 
-				}
-			}		
+        my @allalternatives=();	
+	unless ((grep( /^$word$/, @dictionaryarray)) || ($word =~ /(\d)+/)){
+		push(@allalternatives,$words->findPhoneticVariants); # COGNITIVE ERRROS
+		unless(@allalternatives){ # If no cognitive variants are found, check for typographic errors
+			if (($spellcheck eq "Real") && (($frequency>$main::realwordminimumfrequency) ||  ($main::FIRSTNAMES{$word}))) { 
+					$flag;	
+			}	
+			else{
+				push(@allalternatives,$words->wordSplitter); # Split a non-word if its separate parts each form an existing word with a minimum frequency
+				push(@allalternatives,$words->findOneInsertion); # TYPOGRAPHIC ERRORS
+				push(@allalternatives,$words->findOneDeletion); # TYPOGRAPHIC ERRORS
+				push(@allalternatives,$words->findOneSubstitution); # TYPOGRAPHIC ERRORS
+				push(@allalternatives,$words->findOneTransposition); # TYPOGRAPHIC ERRORS
+			}
+		}
 	}
-	unless(@alternatives){ 
-		push(@alternatives,$word);
+	unless(@allalternatives){ # If no alternatives are found, keep the original word
+		push(@allalternatives,$word);
 	}
 	my %hash=();
-	%hash=map{$_=>1} @alternatives;
+	%hash=map{$_=>1} @allalternatives;
 	my @unique = keys %hash;
-	$word_object->{spellingalternatives}=[@unique]; 
+	$words->{spellingalternatives}=[@unique]; # Remove duplicates
     }
     return $pkg;
 }
@@ -280,71 +283,152 @@ sub findVariants {
 sub filterVariants{
     my ($pkg)=@_;
     my $words=$pkg->{words};
-    unless (@$words<3){
-	    my $amountofwordsminus1=@$words-1;
+    $amountofwords=scalar (@$words);
+    if ($amountofwords eq "3"){
 	    for(my $i=0;$i<@$words;$i++){
 		$spellingalternatives=@$words[$i]->{spellingalternatives};
 		$amountofspellingalternatives=scalar (@$spellingalternatives);
-		if ($amountofspellingalternatives>1){
+		if ($amountofspellingalternatives > 1){
 			@filteredalternatives=();
-			foreach $alternative(@$spellingalternatives){
-				my $rows;
-				LOOP:{
-					if($i eq "0"){
-							$iplusonealternatives=@$words[$i+1]->{spellingalternatives};
-							$iplustwoalternatives=@$words[$i+2]->{spellingalternatives};
-							foreach $iplusonealternative(@$iplusonealternatives){
-								foreach $iplustwoalternative(@$iplustwoalternatives){
-									my $stmt = qq(select * from trigram where ngram='$alternative $iplusonealternative $iplustwoalternative';); 
-							 	        $rows=$dutch_lm->lookup($stmt);
+				if($i eq "0"){
+					foreach $alternative(@$spellingalternatives){
+					LOOP: {
+						$secondwordsspellingalternatives=@$words[$i+1]->{spellingalternatives};
+						$thirdwordsspellingalternatives=@$words[$i+2]->{spellingalternatives};
+						foreach $secondwordsspellingalternative(@$secondwordsspellingalternatives){
+							foreach $thirdwordsspellingalternative(@$thirdwordsspellingalternatives){
+								my $stmt = qq(select * from trigram where ngram='$alternative $secondwordsspellingalternative $thirdwordsspellingalternative';); 
+						 	        $rows=$dutch_lm->lookup($stmt);
+								if (@$rows[0]) {
+									push(@filteredalternatives,$alternative);
 									last LOOP;
 								}
 							}
+						}
 					}
-					elsif($i eq $amountofwordsminus1){
-							$iminustwoalternatives=@$words[$i-2]->{spellingalternatives};
-							$iminusonealternatives=@$words[$i-1]->{spellingalternatives};
-							foreach $iminustwoalternative(@$iminustwoalternatives){
-								foreach $iminusonealternative(@$iminusonealternatives){
-									my $stmt = qq(select * from trigram where ngram='$iminustwoalternative $iminusonealternative $alternative';); 
-							 	        $rows=$dutch_lm->lookup($stmt);
-									last LOOP;
-								}
-							}
-					}
-					else{
-							$iminusonealternatives=@$words[$i-1]->{spellingalternatives};
-							$iplusonealternatives=@$words[$i+1]->{spellingalternatives};
-							foreach $iminusonealternative(@$iminusonealternatives){
-								foreach $iplusonealternative(@$iplusonealternatives){
-									my $stmt = qq(select * from trigram where ngram='$iminusonealternative $alternative $iplusonealternative';); 
-						 	      	  	$rows=$dutch_lm->lookup($stmt);
-									last LOOP;
-								}
-							}
 					}
 				}
-				if(@$rows[0]){
-					push(@filteredalternatives,$alternative);
+				elsif($i eq "1"){
+					foreach $alternative(@$spellingalternatives){
+					LOOP: {
+						$firstwordsspellingalternatives=@$words[$i-1]->{spellingalternatives};
+						$thirdwordsspellingalternatives=@$words[$i+1]->{spellingalternatives};
+						foreach $firstwordsspellingalternative(@$firstwordsspellingalternatives){
+							foreach $thirdwordsspellingalternative(@$thirdwordsspellingalternatives){
+								my $stmt = qq(select * from trigram where ngram='$firstwordsspellingalternative $alternative $thirdwordsspellingalternative';); 
+						 	        $rows=$dutch_lm->lookup($stmt);
+								if (@$rows[0]) {
+									push(@filteredalternatives,$alternative);
+									last LOOP;
+								}
+							}
+						}
+					}
+					}
 				}
-			}
-			if(@filteredalternatives > 0){
-				delete @$words[$i]->{spellingalternatives};
-				@$words[$i]->{spellingalternatives}=[@filteredalternatives];
-			}
+				elsif($i eq "2"){
+					foreach $alternative(@$spellingalternatives){
+					LOOP: {
+						$firstwordsspellingalternatives=@$words[$i-2]->{spellingalternatives};
+						$secondwordsspellingalternatives=@$words[$i-1]->{spellingalternatives};
+						foreach $firstwordsspellingalternative(@$firstwordsspellingalternatives){
+							foreach $secondwordsspellingalternative(@$secondwordsspellingalternatives){
+								my $stmt = qq(select * from trigram where ngram='$firstwordsspellingalternative $secondwordsspellingalternative $alternative';); 
+						 	        $rows=$dutch_lm->lookup($stmt);
+								if (@$rows[0]) {
+									push(@filteredalternatives,$alternative);
+									last LOOP;
+								}
+							}
+						}
+					}
+					}
+				}
+				if(@filteredalternatives > 0){
+					delete @$words[$i]->{spellingalternatives};
+					@$words[$i]->{spellingalternatives}=[@filteredalternatives];
+				}
 		}
-	    }
+	   }
+    }
+    elsif ($amountofwords > 3){
+	    my $amountofwordsminus1=$amountofwords - 1;
+	    for(my $i=0;$i<@$words;$i++){
+		$spellingalternatives=@$words[$i]->{spellingalternatives};
+		$amountofspellingalternatives=scalar (@$spellingalternatives);
+		if ($amountofspellingalternatives > 1){
+			@filteredalternatives=();
+				if($i eq "0"){
+					foreach $alternative(@$spellingalternatives){
+					LOOP: {
+						$secondwordsspellingalternatives=@$words[$i+1]->{spellingalternatives};
+						$thirdwordsspellingalternatives=@$words[$i+2]->{spellingalternatives};
+						foreach $secondwordsspellingalternative(@$secondwordsspellingalternatives){
+							foreach $thirdwordsspellingalternative(@$thirdwordsspellingalternatives){
+								my $stmt = qq(select * from trigram where ngram='$alternative $secondwordsspellingalternative $thirdwordsspellingalternative';); 
+						 	        $rows=$dutch_lm->lookup($stmt);
+								if (@$rows[0]) {
+									push(@filteredalternatives,$alternative);
+									last LOOP;
+								}
+							}
+						}
+					}
+					}
+				}
+				elsif($i eq $amountofwordsminus1){
+					foreach $alternative(@$spellingalternatives){
+					LOOP: {
+						$firstwordsspellingalternatives=@$words[$i-2]->{spellingalternatives};
+						$secondwordsspellingalternatives=@$words[$i-1]->{spellingalternatives};
+						foreach $firstwordsspellingalternative(@$firstwordsspellingalternatives){
+							foreach $secondwordsspellingalternative(@$secondwordsspellingalternatives){
+								my $stmt = qq(select * from trigram where ngram='$firstwordsspellingalternative $secondwordsspellingalternative $alternative';); 
+						 	        $rows=$dutch_lm->lookup($stmt);
+								if (@$rows[0]) {
+									push(@filteredalternatives,$alternative);
+									last LOOP;
+								}
+							}
+						}
+					}
+					}
+				}
+				else{
+					foreach $alternative(@$spellingalternatives){
+					LOOP: {
+						$firstwordsspellingalternatives=@$words[$i-1]->{spellingalternatives};
+						$thirdwordsspellingalternatives=@$words[$i+1]->{spellingalternatives};
+						foreach $firstwordsspellingalternative(@$firstwordsspellingalternatives){
+							foreach $thirdwordsspellingalternative(@$thirdwordsspellingalternatives){
+								my $stmt = qq(select * from trigram where ngram='$firstwordsspellingalternative $alternative $thirdwordsspellingalternative';); 
+						 	        $rows=$dutch_lm->lookup($stmt);
+								if (@$rows[0]) {
+									push(@filteredalternatives,$alternative);
+									last LOOP;
+								}
+							}
+						}
+					}
+					}
+				}
+				if(@filteredalternatives > 0){
+					delete @$words[$i]->{spellingalternatives};
+					@$words[$i]->{spellingalternatives}=[@filteredalternatives];
+				}
+		}
+	   }
     }
 }
 
-sub buildHypothesisSentences{
+sub buildAllSentences{
     my ($pkg)=@_;
     my @arrayofarrays=();
     my $words=$pkg->{words};
     foreach (@$words) {
 	$spellingalternatives=$_->{spellingalternatives};
 	push(@arrayofarrays,$spellingalternatives);
-    }
+   }
     my @results = ("");
     foreach my $subarray (@arrayofarrays) {
 	    my @tmp_results = ();
@@ -366,7 +450,7 @@ sub buildHypothesisSentences{
     $pkg->{alternativesentences}=[@results];
 }
 
-sub createSplitSentences{
+sub makeSplitSentences{
 	my ($pkg)=@_;
 	my @allsplitsentences=();
 	my $alternativesentences=$pkg->{alternativesentences};
@@ -378,110 +462,99 @@ sub createSplitSentences{
 	$pkg->{splitsentences}=[@allsplitsentences];
 }
 
-sub performFuzzyMatch { 
+sub fuzzyMatch{ # Fuzzy match chooses the correct combination of variants within its context
     my ($pkg)=@_;
     my $splitsentences=$pkg->{splitsentences};
-    $input=join("\\n",@$splitsentences);
-    $cmd="echo -e \"$input\" | salm_modified/Bin/Linux/Search/LocateEmbeddedNgramsInCorpus.O64 $main::tokenizedcorpus $main::highestfreqthresh 100000000 $main::ngramlength 10000000 $main::minimumscore 0" ;
-    @fuzzysalm=`$cmd`;
-    my $querypos=0;
-    my @fuzzytransformed=();
-    foreach (@fuzzysalm) {
-	if (/(^0) (.+$)/) { 
-	   $querypos++;
-           $inputzin=$2;
-        }
-        elsif (/^\d+/) { 
-          chomp;
-          ($linenr,$string,$score,$querydown,$position)=split(/\t/);
-	  push(@fuzzytransformed,[$querypos,$inputzin,$linenr,$string,$score,$position]);
-        }
-     }
-     $pkg->processFuzzyMatchOutput(@fuzzytransformed);
+    open (FUZZYMATCHINPUT,">$main::inputfuzzymatch$stamp.txt") or die;
+    foreach(@$splitsentences){
+	    print FUZZYMATCHINPUT "$_\n";
+    }
+    close FUZZYMATCHINPUT;
+    `bash $main::fuzzymatcher -n $main::ngramlength -t ../tmp/fuzzy -p $main::highestfreqthresh $main::inputfuzzymatch$stamp.txt $main::tokenizedcorpus $main::minimumscore 0 $main::outputfuzzymatch$stamp.txt`; 
+    `rm -f ../tmp/fuzzy/_approxquerycov*`;
+    $pkg->retrieveLines;
 }
 
-sub processFuzzyMatchOutput {
-  my ($pkg,@fuzzy)=@_;
-  my (%INPUTSENTENCE,%SCORE,%GAPHASH)=();
-  foreach (@fuzzy) {
-     my ($querypos,$input,$line,$str,$score,$position)=@$_;
-     my @positionpairs=split(/\s/,$position);
-     if (@positionpairs>2) { 
-        my ($leftmiddlerightsubstring)=$pkg->performCharacterGapSubstitution($str,$input,@positionpairs);
-	if($leftmiddlerightsubstring){
-	 	$gaphash{$leftmiddlerightsubstring}=$score;
-	}
-     }
-     my ($begin, $end);
-     while (@positionpairs) {
-       $begin=shift(@positionpairs);
-       $end=shift(@positionpairs);
-       $SCORE{$querypos}+=$end-$begin;  # Add the difference between end and begin positions of the match
-     }
-     if(%gaphash){
-	  my $highestvaluekey=(sort {$gaphash{$a} <=> $gaphash{$b}} keys %gaphash)[0];
-	  ($leftsubstring,$middlesubstring,$rightsubstring)=split(/\t/,$highestvaluekey);
-	  $input=~s/ //g;
-	  $input =~s/(.*$leftsubstring).*($rightsubstring.*)/$1$middlesubstring$2/g;       
-     }
-     $INPUTSENTENCE{$querypos}=$input;   
-  }
-  @highest=sort{$SCORE{$b} <=> $SCORE{$a}} keys %SCORE; # Get highest score
-  $output=&makenicestring($INPUTSENTENCE{$highest[0]}); 
-  print "$output";
-}
-
-sub makenicestring{
-   my ($str)= @_;
-   $str=~s/ //g;
-   $str=~s/%/ /g;
-   $str=~s/ ([!,\?\.])/$1/g;
-   $str=ucfirst $str;
-   return $str;
-}
-
-sub performCharacterGapSubstitution{
-        my ($pkg,$sequencename,$lineinput,@positionpairs)=@_;
-        my (@begins,@ends);
-        while (@positionpairs) {
-           push(@begins,shift(@positionpairs));
-           push(@ends,shift(@positionpairs));
-        }
-        for(my $i=0;$i<@begins-1;$i++){
-                $gap=$begins[$i+1]-$ends[$i];
-		if ($gap<$main::maximumcharactergap){
-			@letters=split(/ /,$sequencename);
-			$leftsubstring="";
-			$rightsubstring="";
-			$middlesubstring="";
-			$lineinput=~s/ //g;
-			for (my $j=$begins[$i]-1;$j<$ends[$i];$j++) {
-				$leftsubstring=$leftsubstring."$letters[$j]";
-			}
-			for (my $k=$begins[$i+1]-1;$k<$ends[$i+1];$k++) {
-				$rightsubstring=$rightsubstring."$letters[$k]";
-			}
-			for (my $l=$ends[$i];$l<$begins[$i+1]-1;$l++) {
-				$middlesubstring=$middlesubstring."$letters[$l]";
-			}
-			if(($lineinput =~ /.*$leftsubstring(.){1,3}$rightsubstring.*/) || ($lineinput =~ /.*$leftsubstring(){1,3}$rightsubstring.*/)){
-				$leftmiddlerightsubstring="$leftsubstring\t$middlesubstring\t$rightsubstring";				
-				return($leftmiddlerightsubstring);				
+sub retrieveLines{
+	my ($pkg)=@_;
+	my %data=();
+	open (FUZZYMATCHINPUT,"<$main::inputfuzzymatch$stamp.txt");
+	my $count=1;
+	my %data=();
+	while($lineinput=<FUZZYMATCHINPUT>){
+		my $totaldifference;
+		chomp $lineinput;
+		open (FUZZYMATCHOUTPUT,"<$main::outputfuzzymatch$stamp.txt");
+		my %scorehash=();
+		while ($lineoutput=<FUZZYMATCHOUTPUT>){
+			($querypos,$queryposnumber,$corppos,$corpposnumber,$sequence,$sequencename,$score,$scorenumber,$rank,$ranknumber,$links,$allcharacterpos,$rest)=split(/\t/,$lineoutput);
+			if($queryposnumber eq $count){
+				$allcharacterpos=~s/\? //g;
+				@positionpairs=split(/ /,$allcharacterpos);
+				foreach $positionpair(@positionpairs){
+					($firstcharacter,$lastcharacter)=split(/-/,$positionpair);
+					$difference=$lastcharacter-$firstcharacter;
+					$key="$lineinput\t$sequencename\t$positionpair";
+					$totaldifference=$totaldifference+$difference; # The winning hypothesis is the one that shares many and long character n-grams with the monolingual corpus
+				}
+				$amountofpositionpairs=scalar @positionpairs;
+				if ($amountofpositionpairs > 1){ # Additional correction if a high-scoring match is found 
+					for(my $i=0;$i<$amountofpositionpairs-1;$i++){
+						($firstcharacter,$lastcharacter)=split(/-/,$positionpairs[$i]);
+						($firstcharacter2,$lastcharacter2)=split(/-/,$positionpairs[$i+1]);
+						$gap=$firstcharacter2-$lastcharacter;
+						if ($gap<4){
+							@letters=split(/ /,$sequencename);
+							$leftsubstring="";
+							$rightsubstring="";
+							$middlesubstring="";
+							$lineinput=~s/ //g;
+							for (my $j=$firstcharacter-1;$j<$lastcharacter;$j++) {
+								$leftsubstring=$leftsubstring."$letters[$j]";
+							}
+							for (my $k=$firstcharacter2-1;$k<$lastcharacter2;$k++) {
+								$rightsubstring=$rightsubstring."$letters[$k]";
+							}
+							for (my $l=$lastcharacter;$l<$firstcharacter2-1;$l++) {
+								$middlesubstring=$middlesubstring."$letters[$l]";
+							}
+							if(($lineinput =~ /.*$leftsubstring(.){1,3}$rightsubstring.*/) || ($lineinput =~ /.*$leftsubstring(){1,3}$rightsubstring.*/)){
+								$leftmiddlerightsubstring="$leftsubstring\t$middlesubstring\t$rightsubstring";								
+								$scorehash{$leftmiddlerightsubstring}=$scorenumber;
+							}
+						}
+					}
+				}
 			}
 		}
+						my $highestvaluekey=(sort {$scorehash{$a} <=> $scorehash{$b}} keys %scorehash)[0];
+						($leftsubstring,$middlesubstring,$rightsubstring)=split(/\t/,$highestvaluekey);
+	 					my ($originalmiddlestring) = $lineinput =~  /.*$leftsubstring((.){1,3})$rightsubstring.*/igs;
+						if ((($main::SPELLCHECKLEX{$originalmiddlestring}) ||
+					        ($main::SPELLCHECKLEX{lc($originalmiddlestring)}) ||
+				                ($main::FIRSTNAMES{$originalmiddlestring}) ||
+						($main::FIRSTNAMES{ucfirst($originalmiddlestring)})) && ($frequency>1000)){	
+							$flag;
+						}
+						else{
+							$lineinput =~s/(.*$leftsubstring).*($rightsubstring.*)/$1$middlesubstring$2/g; 
+																       
+						}
+		$data{$lineinput}=$totaldifference;
+		$count++;
 	}
-}
-
-sub printHighestScoringHypothesis{
-	($pkg,%hypothesishash)=@_;
-	$highestscoring=(sort {$hypothesishash{$b} <=> $hypothesishash{$a}} keys %hypothesishash)[0];
+	$highestscoring=(sort {$data{$b} <=> $data{$a}} keys %data)[0];
 	$highestscoring=~s/ //g;
 	$highestscoring=~s/%/ /g;
-	$highestscoring=~s/ ([!,\?\.])/$1/g;
+	$highestscoring=~s/ !/!/g;
+	$highestscoring=~s/ ,/,/g;
+	$highestscoring=~s/ \?/\?/g;
+	$highestscoring=~s/ \./\./g;
 	$highestscoringucfirst=ucfirst $highestscoring;
-	print "$highestscoringucfirst";
-	`rm -f $main::inputfuzzymatch$stamp.txt`;
-        `rm -f $main::tmpdirectoryfuzzy/fuzzy$stamp.txt`;
+	print "$highestscoringucfirst ";
+  	`rm -f $main::inputfuzzymatch$stamp.txt`;
+   	`rm -f $main::inputfuzzymatch$stamp.txt_nolong`;
+        `rm -f $main::outputfuzzymatch$stamp.txt`;
 }
 
 #---------------------------------------
@@ -507,11 +580,10 @@ sub wordSplitter{
     my $word=$pkg->{token};
     $frequency=$main::lexicon{$word};
     my $spellcheck=$pkg->{spellcheck};
-    if(($spellcheck eq "Non-word") || ($frequency < $main::wordsplitterpenalty1)){
-        my $command="perl $main::singlewordsplitter -i $main::wordsplitterpenalty2 '$word'";
-        print STDERR "$command\n";
-    	my @output=`$command`;
-        foreach $line (@output) {
+    if(($spellcheck eq "Non-word") || ($frequency < $main::wordsplitterpenalty)){
+    	`perl $singlewordsplitter -i $main::wordsplitterpenalty2 '$word' > $main::outputforsinglewordsplitter$stamp.txt`;
+	open (OUTPUTSPLITTER,"<$main::outputforsinglewordsplitter$stamp.txt");
+	while($line=<OUTPUTSPLITTER>){
 		chomp $line;
 		@outputwords=split(/\t/,$line);
 		$amountofwords=scalar @outputwords;
@@ -520,6 +592,7 @@ sub wordSplitter{
 			return $line;
 		}
 	}
+	`rm -f $main::outputforsinglewordsplitter$stamp.txt`;
     }
     else{
 	   return;
@@ -529,6 +602,7 @@ sub wordSplitter{
 sub lookupInDictionary {
     my ($pkg)=@_;
     my $word=$pkg->{token};
+    if (length($word)<$main::maxlengthwordinspellcheck) {
 	if (($main::SPELLCHECKLEX{$word}) ||
 		($main::SPELLCHECKLEX{lc($word)}) ||
 		($main::FIRSTNAMES{$word}) ||
@@ -539,6 +613,7 @@ sub lookupInDictionary {
 	else{
 		$pkg->{spellcheck}="Non-word";
 	}
+    }	
     return $pkg;	
 }
 
@@ -560,18 +635,33 @@ sub findOneInsertion {
 			splice(@letters,$i,0,$_);
 			$newtoken=join("",@letters);
 			$newtoken=~s/ //g;
-			if (($main::SPELLCHECKLEX{$newtoken}) || ($main::FIRSTNAMES{$newtoken})) {
+			if (($main::SPELLCHECKLEX{$newtoken}) ||
+			    ($main::FIRSTNAMES{$newtoken})) {
 			    push(@oneinsertions,$newtoken);
 			}
-			elsif (($ucfirst=ucfirst($newtoken)) && ($main::FIRSTNAMES{$ucfirst})) {
+			elsif (($ucfirst=ucfirst($newtoken)) &&
+			       ($main::FIRSTNAMES{$ucfirst})) {
 			    push(@oneinsertions,$ucfirst);
+			}
+			else {
+				$flag;
 			}
 		    }
 		   @letters=@orig;
 		}
 	    }
-    return @oneinsertions;
+    my @existingoneinsertions=();
+    foreach $newword(@oneinsertions){
+	$frequency=$main::lexicon{$newword};
+	if ((($main::SPELLCHECKLEX{$newword}) ||
+			($main::SPELLCHECKLEX{lc($newword)}) ||
+			($newword=~/^[\.\?\!\,\:\;\'\d]+$/)) && ($frequency > $main::frequencyretainvariant)){
+		push(@existingoneinsertions,$newword);
+	}
+    }
+	return @existingoneinsertions;
 }
+
 
 sub findOneDeletion {
     my ($pkg)=@_;
@@ -580,27 +670,43 @@ sub findOneDeletion {
     my (@onedeletions);
     push(@onedeletions,$token);
     my @orig=split(//,$token);
+    my (@onedeletions);
     my @letters=@orig;
     my ($word,$ucfirst);
 	    for (my $i=0;$i<@letters;$i++) {
 		splice(@letters,$i,1);
 		$word=join("",@letters);
-		if (($main::SPELLCHECKLEX{$word}) || ($main::FIRSTNAMES{$word})) {
+		if (($main::SPELLCHECKLEX{$word}) ||
+		    ($main::FIRSTNAMES{$word})) {
 		    push(@onedeletions,$word);
 		}
-		elsif (($ucfirst=ucfirst($word)) && ($main::FIRSTNAMES{$ucfirst})) {
+		elsif (($ucfirst=ucfirst($word)) &&
+		       ($main::FIRSTNAMES{$ucfirst})) {
 		    push(@onedeletions,$ucfirst);
+		}
+		else {
+		    $flag;
 		}
 		@letters=@orig;
 	    }
-    return @onedeletions;
+    my @existingonedeletions=();
+    foreach $newword(@onedeletions){
+	$frequency=$main::lexicon{$newword};
+	chomp $frequency;
+	if ((($main::SPELLCHECKLEX{$newword}) ||
+			($main::SPELLCHECKLEX{lc($newword)}) ||
+			($newword=~/^[\.\?\!\,\:\;\'\d]+$/)) && ($frequency > $main::frequencyretainvariant)){
+		push(@existingonedeletions,$newword);
+	}
+    }
+	return @existingonedeletions;
 }
 
 sub findOneSubstitution {
     my ($pkg)=@_;
     my $token=$pkg->{token};
-    my (@onesubstitutions);
-    push(@onesubstitutions,$token);
+    my (@oneinsertions);
+    push(@oneinsertions,$token);
     my @origs=split(//,$token);
     my @inserts=qw(a b c d e f g h i j k l m n o p q r s t u v w x y z ä ë ï ö ü à è ò ù é ç);
     my @letters=@origs;
@@ -610,17 +716,31 @@ sub findOneSubstitution {
 		    unless ($_ eq $letters[$i]) {
 			splice(@letters,$i,1,$_);
 			$newtoken=join("",@letters);
-			if (($main::SPELLCHECKLEX{$newtoken})|| ($main::FIRSTNAMES{$newtoken})) {
-			    push(@onesubstitutions,$newtoken);
+			if (($main::SPELLCHECKLEX{$newtoken})||
+			    ($main::FIRSTNAMES{$newtoken})) {
+			    push(@oneinsertions,$newtoken);
 			}
-			elsif (($ucfirst=ucfirst($newtoken)) && ($main::FIRSTNAMES{$ucfirst})) {
-			    push(@onesubstitutions,$ucfirst);
+			elsif (($ucfirst=ucfirst($newtoken)) &&
+			       ($main::FIRSTNAMES{$ucfirst})) {
+			    push(@oneinsertions,$ucfirst);
+			}
+			else {
+				$flag;
 			}
 		    }
 		    @letters=@origs;
 		}
 	    }
-    return @onesubstitutions;
+    my @existingoneinsertions=();
+    foreach $newword(@oneinsertions){
+	$frequency=$main::lexicon{$newword};
+	if ((($main::SPELLCHECKLEX{$newword}) ||
+			($main::SPELLCHECKLEX{lc($newword)}) ||
+			($newword=~/^[\.\?\!\,\:\;\'\d]+$/)) && ($frequency > $main::frequencyretainvariant)){
+		push(@existingoneinsertions,$newword);
+	}
+    }
+	return @existingoneinsertions;
 }
 
 sub findOneTransposition {
@@ -630,24 +750,26 @@ sub findOneTransposition {
     push(@onetranspositions,$token);
     for my $i (0 .. length($token)-2) { 
     	(my $newtoken = $token) =~ s/(.{$i})(.)(.)/$1$3$2/;
-			if (($main::SPELLCHECKLEX{$newtoken})|| ($main::FIRSTNAMES{$newtoken})) {
+			if (($main::SPELLCHECKLEX{$newtoken})||
+			    ($main::FIRSTNAMES{$newtoken})) {
 			    push(@onetranspositions,$newtoken);
 			}
-			elsif (($ucfirst=ucfirst($newtoken)) && ($main::FIRSTNAMES{$ucfirst})) {
+			elsif (($ucfirst=ucfirst($newtoken)) &&
+			    ($main::FIRSTNAMES{$ucfirst})) {
 			    push(@onetranspositions,$ucfirst);
 			}
+			else {
+				$flag;
+			}
     }
-    return @onetranspositions;
-}
-
-sub returnRealWordAlternatives{
-    my ($pkg,@possiblealternatives)=@_;
-    my @existingalternatives=();
-    foreach $newword(@possiblealternatives){
+    my @existingonetranspositions=();
+    foreach $newword(@onetranspositions){
 	$frequency=$main::lexicon{$newword};
-	if ((($main::SPELLCHECKLEX{$newword}) || ($main::SPELLCHECKLEX{lc($newword)}) || ($newword=~/^[\.\?\!\,\:\;\'\d]+$/)) && ($frequency > $main::frequencyretainvariant)){
-		push(@existingalternatives,$newword);
+	if ((($main::SPELLCHECKLEX{$newword}) ||
+			($main::SPELLCHECKLEX{lc($newword)}) ||
+			($newword=~/^[\.\?\!\,\:\;\'\d]+$/)) && ($frequency > $main::frequencyretainvariant)){
+		push(@existingonetranspositions,$newword);
 	}
     }
-    return @existingalternatives;
+	return @existingonetranspositions;
 }

@@ -23,7 +23,7 @@ use Encode;
 #---------------------------------------
 
 #require "$Bin/simplifybackup.pm"; # Activated when the simplification module is turned off, or when a time-out occurs during parsing
-require "$Bin/GenericFunctionsSimplify.pm"; 
+require "$Bin/modules/GenericFunctionsSimplify.pm"; 
 
 #---------------------------------------
 

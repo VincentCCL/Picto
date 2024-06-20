@@ -8,10 +8,11 @@
 # Functions taken over from object.pm to remove all language dependent info
 #---------------------------------------
 
-$VERSION="1.0.2."; # 26.09.2014 Lemmatizer takes token as lemma if no lemma is found
+$VERSION="1.1"; # 20.06.2024 Paths adapted to new installation, tmpfile usage for hunpostagger removed
+#$VERSION="1.0.2."; # 26.09.2014 Lemmatizer takes token as lemma if no lemma is found
 #$VERSION="1.0.1."; # 22.09.2014 Utf-8 compliant, works with accented input
 #$VERSION="1.0"; # 16.09.14 English version based on dutch.pm (VERSION="1.2")
-
+use DB_File;
 1;
 
 #---------------------------------------
@@ -19,23 +20,23 @@ $VERSION="1.0.2."; # 26.09.2014 Lemmatizer takes token as lemma if no lemma is f
 ## LOCATIONS OF HUNPOS TAGGER 
 # Halácsy, Péter, András Kornai, Csaba Oravecz (2007) HunPos - an open source trigram tagger In Proceedings of the 45th Annual Meeting of the Association for Computational Linguistics Companion Volume Proceedings of the Demo and Poster Sessions. Association for Computational Linguistics, Prague, Czech Republic, pages 209--212.
 
-$hunposlocation="$Bin/Hunpos/"; # Path of the hunpos application
-$hunpostraining="$Bin/modules/hunpos_data/english.model"; # Path of the hunpos training data
+#$hunposlocation="$Bin/modules/hunpos_data/Hunpos/"; # Path of the hunpos application
+our $hunpostraining="$Bin/modules/hunpos_data/english.model"; # Path of the hunpos training data
 
 #---------------------------------------
 
 # LEMMA DATABASE: AMERICAN NATIONAL CORPUS http://www.americannationalcorpus.org/SecondRelease/frequency2.html
-tie %LEMMAS,"DB_File","$Bin/modules/ANClemma/ANC_lemma.db" or die; # Location of the lemma database
+tie %LEMMAS,"DB_File","$Bin/data/english/ANClemma/ANC_lemma.db" or die ("$Bin/data/english/ANClemma/ANC_lemma.db does not exist"); # Location of the lemma database
 
 ## SPELL CHECKING INPUT WORDS
 
 # LEMMA AND FREQUENCY DATABASE: AMERICAN NATIONAL CORPUS http://www.americannationalcorpus.org/SecondRelease/frequency2.html
-$lexname="$Bin/modules/ANClemma/ANC_lemmafreq.db";
+$lexname="$Bin/data/english/ANClemma/ANC_lemmafreq.db";
 tie %SPELLCHECKLEX,"DB_File",$lexname;
 tie %lexicon,"DB_File",$lexname;
 
 # Firstnames lexicon
-tie %FIRSTNAMES,"DB_File","$Bin/modules/ANClemma/english_firstnames.db"; # http://www.quietaffiliate.com/free-first-name-and-last-name-databases-csv-and-sql
+tie %FIRSTNAMES,"DB_File","$Bin/data/english/ANClemma/english_firstnames.db"; # http://www.quietaffiliate.com/free-first-name-and-last-name-databases-csv-and-sql
 
 $maxlengthwordinspellcheck=30;
 
@@ -46,13 +47,13 @@ package message;
 sub taglemmatize {
     # If $nospellcheck contains 'nospellcheck' spellchecking is skipped
     # If $nospellcheck contains 'sclera' the sclera dictionary is also checked before spellchecking
-    my ($pkg,$nospellcheck)=@_;
+    my ($pkg)=@_; #,$nospellcheck)=@_;
     $pkg->addFullStop;
     $pkg->findCompound;
     $pkg->tokenize;
-    unless ($nospellcheck eq 'nospellcheck') {
-	$pkg->spellCheck($nospellcheck);
-    }
+    #unless ($nospellcheck eq 'nospellcheck') {
+	#$pkg->spellCheck($nospellcheck);
+    #}
     $pkg->tag;
     $pkg->detectSentences;
     $pkg->lemmatize;
@@ -111,18 +112,17 @@ sub tag {
     my $stamp=time.$main::sessionid;
     my $log=$pkg->{logfile};
     print $log "Part of Speech Tagging\n";
-    open (TMP,">:utf8","$main::tempfilelocation/$stamp");
+    #open (TMP,">:utf8","$main::tempfilelocation/$stamp");
     my $words=$pkg->{words};
+    my @tokens;
     foreach (@$words) {
-    	$token=$_->{token};
-    	print TMP "$token\n";
+    	push(@tokens,$_->{token});
     }
-    close TMP;
-    `$main::hunposlocation/hunpos-tag $main::hunpostraining < $main::tempfilelocation/$stamp > $main::tempfilelocation/$stamp.tmp`;
-    unlink "$main::tempfilelocation/$stamp";
-    open (TMP,"$main::tempfilelocation/$stamp.tmp");
-    my @words;
-    while (<TMP>) {
+    my $wordstring=join("\n",@tokens);
+    my $systemcommand = "echo \$\'$wordstring\' | $main::hunposlocation/hunpos-tag $main::hunpostraining";
+    print $log "$systemcommand\n" if $log;
+    @taggeroutput = `$systemcommand`;
+    foreach (@taggeroutput) {
     	chomp;
 	($tok,$tag)=split(/\t/,$_);
 	if (defined($tok)) {
@@ -135,7 +135,7 @@ sub tag {
 	    push(@words,$word);
 	}
     }
-    unlink "$main::tempfilelocation/$stamp.tmp" || print $log "\nCannot delete $main::tempfilelocation/$stamp.tmp\n";
+#    unlink "$main::tempfilelocation/$stamp.tmp" || print $log "\nCannot delete $main::tempfilelocation/$stamp.tmp\n";
     print $log "--------------\n";
     $pkg->{words}=[@words];
 }

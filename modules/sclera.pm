@@ -10,7 +10,7 @@
 
 #---------------------------------------
 
-$VERSION="1.2";  # 25.11.13 Source language dependent info is put in sclera_dutch.pm
+#$VERSION="1.2";  # 25.11.13 Source language dependent info is put in sclera_dutch.pm
 #$VERSION="1.1.1"; # GetExtension added
 #$VERSION="1.1"; # Better processing of VNW
 # Version used in the first release for WAI-NOT
@@ -28,7 +28,7 @@ sub getPictoDirs {
 }
 
 sub getURL {
-    return "http://webservices.ccl.kuleuven.be/picto/sclera/";
+    return "http://text2picto.ccl.kuleuven.be/web/sclera/";
 }
 
 sub negativePicto {

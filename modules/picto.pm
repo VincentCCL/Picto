@@ -697,6 +697,7 @@ sub HTMLOut { # new version, checks whether image object has a url field
     my ($url,@pictodirs);
     if (my $target=$pkg->{target}) {
       $url=$target->getURL;
+      print $log "URL for $target pictos: $url\n";
       @pictodirs=$target->getPictoDirs;
     }
     else {
@@ -714,7 +715,8 @@ sub HTMLOut { # new version, checks whether image object has a url field
 	if (ref($_) eq 'image') {
 	  $filename=$_->{filename};
 	  if ($imageurl=$_->{url}) {
-	    print "<img src=\"$imageurl\" $imgsize alt=\"$filename\">\n";
+	      print $log "<img src=\"$imageurl\" $imgsize alt=\"$filename\">\n" if $log;
+	      print "<img src=\"$imageurl\" $imgsize alt=\"$filename\">\n";
 	  }
 	  else {
 	    foreach $dir (@pictodirs) {

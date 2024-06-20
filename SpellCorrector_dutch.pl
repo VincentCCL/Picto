@@ -89,6 +89,7 @@ our $stamp=time;
 our $singlewordsplitter="$Bin/modules/Wordbuilder/SingleWordSplitter.pl";
 our $outputforsinglewordsplitter="$Bin/modules/Wordbuilder/outputsplitter";
 
+our $tempdir="$Bin/../tmp/";
 our $inputfuzzymatch="$Bin/../tmp/spellcheck/inputfuzzymatch";
 our $outputfuzzymatch="$Bin/../tmp/spellcheck/outputfuzzymatch";
 our $fuzzymatcher="$Bin/modules/get_approxquerycov_matches.bash";
@@ -470,7 +471,7 @@ sub fuzzyMatch{ # Fuzzy match chooses the correct combination of variants within
 	    print FUZZYMATCHINPUT "$_\n";
     }
     close FUZZYMATCHINPUT;
-    `bash $main::fuzzymatcher -n $main::ngramlength -t ../tmp/fuzzy -p $main::highestfreqthresh $main::inputfuzzymatch$stamp.txt $main::tokenizedcorpus $main::minimumscore 0 $main::outputfuzzymatch$stamp.txt`; 
+    `bash $main::fuzzymatcher -n $main::ngramlength -t $tempdir/fuzzy -p $main::highestfreqthresh $main::inputfuzzymatch$stamp.txt $main::tokenizedcorpus $main::minimumscore 0 $main::outputfuzzymatch$stamp.txt`; 
     `rm -f ../tmp/fuzzy/_approxquerycov*`;
     $pkg->retrieveLines;
 }

@@ -29,7 +29,7 @@ sub getPictoDirs {
 }
 
 sub getURL {
-    return "http://webservices.ccl.kuleuven.be/picto/beta/";
+    return "http://text2picto.ccl.kuleuven.be/web/beta/";
 }
 
 sub negativePicto {

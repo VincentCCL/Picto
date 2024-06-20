@@ -21,7 +21,7 @@ sub LoadConfigPaths {
       # Vandeghinste, V. (2002). Lexicon Optimization: Maximizing Lexical Coverage in Speech Recognition through Automated Compounding. In M. Rodríguez and C. Araujo (eds.), Proceedings of the 3rd International Conference on Language Resources and Evaluation (LREC). European Language Resources Association. Las Palmas, Spain.
       if ($sourcelanguage eq 'dutch') {
 	  require "$Bin/modules/shallow_dutch.pm"; 
-	  &LoadShallowProcessingConfigDutch;
+	  &LoadShallowProcessingConfigDutch;  # do somthing similar for English
       }
       #$paralleloutput="$Bin/../tmp/output/ParallelOutput";  # What is this?
   }
@@ -167,9 +167,13 @@ sub LoadDefaultValues {
  $verbose{'r'}="-r WSD weight";
 
  # database parameters
- $default{'g'}="cornetto3";
+ $default{'g'}={"dutch,beta" => "cornetto3",
+		"dutch,sclera" => "cornetto3",
+		"english,beta" => "princeton30new",
+		"english,sclera" => "princeton30new",
+		"" => "cornetto3" };
  $verbose{'g'}="-g Picto database name";
- $default{'j'}="gobelijn";
+ $default{'j'}="localhost";
  $verbose{'j'}="-j Picto database host";
  $default{'m'}="5432";
  $verbose{'m'}="-m Picto database port";
@@ -246,7 +250,8 @@ sub processOptions {
   our $dictionary_advantage=$opts{'d'}->{"$sourcelanguage,$targetlanguage"};
   our $wsdweight=$opts{'r'}->{"$sourcelanguage,$targetlanguage"};
   
-  our $database=$opts{'g'};
+  our $database=$opts{'g'};#->{"$sourcelanguage,$targetlanguage"};
+  #our $database=$opts{'g'};
   our $host=$opts{'j'};
   our $port=$opts{'m'};
   our $user=$opts{'u'};
@@ -294,6 +299,8 @@ sub externalSpellChecker {
     $log=\*LOG;
     print $log "\n========== END OF EXTERNAL SPELL CHECKER LOGGING==============\n";
   }
+  print $log "Output from $externalSpellCheckerCommand:\n$correct\n";
   chomp $correct;
+  
   return $correct;
 }

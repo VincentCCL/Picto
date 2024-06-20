@@ -6,41 +6,42 @@
 
 #---------------------------------------
 
-$VERSION="1.0"; # 16.09.14 English version based on synset_dutch.pm (VERSION="1.0")
+$VERSION='1.1'; # 20.06.2024 removed openWordnet
+#$VERSION="1.0"; # 16.09.14 English version based on synset_dutch.pm (VERSION="1.0")
 
 #---------------------------------------
 
 1;
 
 #---------------------------------------
-package cornetto;
+#package cornetto;
 #---------------------------------------
 
-@ISA=("wordnet");
+#@ISA=("wordnet");
 
-$database="princeton30new";
-$host="gobelijn";
-$port="5432";
-$user="vincent";
-$pwd="vincent";
+#$database="princeton30new";
+#$host="localhost";
+#$port="5432";
+#$user="vincent";
+#$pwd="vincent";
 
 #---------------------------------------
-package object;
+#package object;
 #---------------------------------------
 
 # ->openWordnet # Used to be openCornetto
 
-sub openWordnet {
-    my ($pkg)=@_;
-    unless ($pkg->{wordnetdb}) {
-	my $db=DBI::db->new($cornetto::database,
-			    $cornetto::host,
-			    $cornetto::port,
-			    $cornetto::user,
-			    $cornetto::pwd);
-	$pkg->{wordnetdb}=$db;
-    }
-}
+#sub openWordnet {
+#    my ($pkg)=@_;
+#    unless ($pkg->{wordnetdb}) {
+#	my $db=DBI::db->new($cornetto::database,
+#			    $cornetto::host,
+#			    $cornetto::port,
+#			    $cornetto::user,
+#			    $cornetto::pwd);
+#	$pkg->{wordnetdb}=$db;
+ #   }
+#}
 
 #---------------------------------------
 package word;

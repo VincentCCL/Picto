@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# Set these paths appropriately
+
+BIN=/home/pricie/leen/Documents/Werk/Resources/TreeTagger/bin
+CMD=/home/pricie/leen/Documents/Werk/Resources/TreeTagger/cmd
+LIB=/home/pricie/leen/Documents/Werk/Resources/TreeTagger/lib
+
+OPTIONS="-token -lemma -sgml"
+
+TAGGER=${BIN}/tree-tagger
+TOKENIZER=${CMD}/tokenize.pl
+ABBR_LIST=${LIB}/swahili-abbreviations
+PARFILE=${LIB}/swahili.par
+
+$TOKENIZER -a $ABBR_LIST $* |
+$TAGGER $OPTIONS $PARFILE

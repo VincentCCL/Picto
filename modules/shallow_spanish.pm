@@ -8,7 +8,8 @@
 # functions taken over from object.pm to remove all language dependent info
 #---------------------------------------
 
-$VERSION="1.1"; # 27.01.2015 Major changes in the spelling checker: now via Postgres instead of DB files to deal with (and correct) Spanish accents
+$VERSION="1.2"; # 24.06.2024 Paths adapted to new installation, tmpfile usage for teeetagger removed
+#$VERSION="1.1"; # 27.01.2015 Major changes in the spelling checker: now via Postgres instead of DB files to deal with (and correct) Spanish accents
 #$VERSION="1.0.2."; # 26.09.2014 Lemmatizer takes token as lemma if no lemma is found
 #$VERSION="1.0.1."; # 22.09.2014 Utf-8 compliant, works with accented input
 #$VERSION="1.0"; # 16.09.14 Spanish version based on dutch.pm (VERSION="1.2")
@@ -18,13 +19,12 @@ $VERSION="1.1"; # 27.01.2015 Major changes in the spelling checker: now via Post
 #---------------------------------------
 
 ## LOCATIONS OF TAGGER: FINDS POS TAG AND LEMMA 
-$taggerlocation="$Bin/TreeTagger/cmd"; # Path of the TreeTagger application http://www.cis.uni-muenchen.de/~schmid/tools/TreeTagger/
+our $taggerlocation="$Bin/modules/TreeTagger/cmd"; # Path of the TreeTagger application http://www.cis.uni-muenchen.de/~schmid/tools/TreeTagger/
 
 #---------------------------------------
 
 ## SPELL CHECKING INPUT WORDS
 
-# LFREQUENCY DATABASE: UNIVERSITY OF LEEDS http://corpus.leeds.ac.uk/frqc/internet-es-forms.num
 #tie %SPELLCHECKLEX,"DB_File","$Bin/../data/SpanishTokenFreq.db";
 #tie %lexicon,"DB_File","$Bin/../data/SpanishTokenFreq.db";
 
@@ -44,9 +44,6 @@ sub taglemmatize {
     $pkg->addFullStop;
     $pkg->findCompound;
     $pkg->tokenize;
-#    unless ($nospellcheck eq 'nospellcheck') {
-#	$pkg->spellCheck($nospellcheck);
-#    }
     $pkg->tag;
     $pkg->detectSentences;
 }
@@ -70,18 +67,24 @@ sub tag {
     my $i = 0;
     my $log=$pkg->{logfile};
     print $log "Part of Speech Tagging and lemmatization\n";
-    open (TMP,">:utf8","$main::tempfilelocation/$stamp");
+    #print $log "Creating tempfile $main::tempfilelocation/$stamp\n";
+    #open (TMP,">:utf8","$main::tempfilelocation/$stamp") or die;
+    my @tokens;
     my $words=$pkg->{words};
     foreach (@$words) {
-    	$token=$_->{token};
-    	print TMP "$token\n";
+    	push(@tokens,$_->{token});
     }
-    close TMP;
-    `$main::taggerlocation/tree-tagger-spanish < $main::tempfilelocation/$stamp > $main::tempfilelocation/$stamp.tmp`;
-    unlink "$main::tempfilelocation/$stamp";
-    open (TMP,"$main::tempfilelocation/$stamp.tmp");
-    my @words;
-    while (<TMP>) {
+#    close TMP;
+    my $wordstring=join("\n",@tokens);
+    my $systemcommand = "echo \$\'$wordstring\' | $main::taggerlocation/tree-tagger-spanish";
+    print $log "$systemcommand\n" if $log;
+    @taggeroutput = `$systemcommand`;
+    #`$main::taggerlocation/tree-tagger-spanish < $main::tempfilelocation/$stamp > $main::tempfilelocation/$stamp.tmp`;
+    #unlink "$main::tempfilelocation/$stamp";
+    #open (TMP,"$main::tempfilelocation/$stamp.tmp");
+    #my @words;
+    #while (<TMP>) {
+    foreach (@taggeroutput) {
     	chomp;
 	($tok,$tag,$lemma)=split(/\t/,$_);
 	if (defined($tok)) {
@@ -237,7 +240,7 @@ sub tag {
  	    $pkg->{words}=[@words];
 	}
     }
-    unlink "$main::tempfilelocation/$stamp.tmp" || print $log "\nCannot delete $main::tempfilelocation/$stamp.tmp\n";
+#    unlink "$main::tempfilelocation/$stamp.tmp" || print $log "\nCannot delete $main::tempfilelocation/$stamp.tmp\n";
     print $log "--------------\n";
 }
 

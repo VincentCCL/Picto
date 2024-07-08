@@ -2,16 +2,16 @@
 
 # Set these paths appropriately
 
-BIN=/home/pricie/leen/Documents/Werk/Resources/TreeTagger/bin
-CMD=/home/pricie/leen/Documents/Werk/Resources/TreeTagger/cmd
-LIB=/home/pricie/leen/Documents/Werk/Resources/TreeTagger/lib
+BIN="/home/local/web/text2picto/script/modules/TreeTagger/bin"
+CMD="/home/local/web/text2picto/script/modules/TreeTagger/cmd"
+LIB="/home/local/web/text2picto/script/modules/TreeTagger/lib"
 
 OPTIONS="-token -lemma -sgml"
 
 TOKENIZER=${CMD}/utf8-tokenize.perl
 TAGGER=${BIN}/tree-tagger
-ABBR_LIST=${LIB}/french-abbreviations-utf8
-PARFILE=${LIB}/french-utf8.par
+ABBR_LIST=${LIB}/french-abbreviations
+PARFILE=${LIB}/french.par
 
 $TOKENIZER -f -a $ABBR_LIST $* |
 $TAGGER $OPTIONS $PARFILE

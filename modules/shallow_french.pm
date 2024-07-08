@@ -8,7 +8,8 @@
 # functions taken over from object.pm to remove all language dependent info
 #---------------------------------------
 
-$VERSION="2.1"; # 17.03.2022 Added lookupMedicalParaphrase and findNamedEntities_medicine functions
+$VERSION="2.2"; # 05.07.2024 Removed use of temporary files for tagging with treetagger
+#$VERSION="2.1"; # 17.03.2022 Added lookupMedicalParaphrase and findNamedEntities_medicine functions
 #$VERSION="2.0"; # 04.03.2022 Changes in findCompound + added compressWords and generateTimePicto functions
 #$VERSION="1.1"; # 01.09.2021 Added findCompound and findNamedEntities_cityPerso functions
 #$VERSION="1.0"; # 02.12.2020 French version based on spanish.pm (VERSION="1.1")
@@ -23,18 +24,11 @@ binmode(STDIN,":encoding(UTF-8)"); #!#
 binmode(STDOUT,":encoding(UTF-8)"); #!#
 
 ## LOCATIONS OF TAGGER: FINDS POS TAG AND LEMMA 
-$taggerlocation="$Bin/TreeTagger/cmd"; # Path of the TreeTagger application http://www.cis.uni-muenchen.de/~schmid/tools/TreeTagger/
+$taggerlocation="$Bin/modules/TreeTagger/cmd"; # Path of the TreeTagger application http://www.cis.uni-muenchen.de/~schmid/tools/TreeTagger/
 
 #---------------------------------------
 
 ## SPELL CHECKING INPUT WORDS
-
-# LFREQUENCY DATABASE: UNIVERSITY OF LEEDS http://corpus.leeds.ac.uk/frqc/internet-es-forms.num
-#tie %SPELLCHECKLEX,"DB_File","$Bin/../data/SpanishTokenFreq.db";
-#tie %lexicon,"DB_File","$Bin/../data/SpanishTokenFreq.db";
-
-# Firstnames lexicon
-#tie %FIRSTNAMES,"DB_File","$Bin/../data/LemmaDBNames.db"; # http://www.quietaffiliate.com/free-first-name-and-last-name-databases-csv-and-sql
 
 $maxlengthwordinspellcheck=30;
 
@@ -54,9 +48,6 @@ sub taglemmatize {
     $pkg->compressWords; #!# v2
     $pkg->findNamedEntities_medicine; #!# v2.1
     $pkg->tokenize;
-    #unless ($nospellcheck eq 'nospellcheck') {
-    #$pkg->spellCheck($nospellcheck);
-    #}
     $pkg->tag;
     $pkg->findNamedEntities_cityPerso; #!# v1
     $pkg->generateTimePicto; #!# v2
@@ -159,39 +150,38 @@ sub findNamedEntities_medicine { #!#
 sub tag {
     my ($pkg)=@_;
     my $stamp=time.$main::sessionid;
-#     my $log=$pkg->{logfile};
-#     print $log "\nPart of Speech Tagging\n" if $log;
-    open (TMP,">:utf8","$main::tempfilelocation/$stamp");
+    my $log=$pkg->{logfile};
+    print $log "\nPart of Speech Tagging\n" if $log;
     my $words=$pkg->{words};
+    my @tokens;
     foreach (@$words) {
-        $token=$_->{token};
-        print TMP "$token\n";
+	push(@tokens,$_->{token});
     }
-    close TMP;
-    `$main::taggerlocation/tree-tagger-french < $main::tempfilelocation/$stamp > $main::tempfilelocation/$stamp.tmp`; #!#
-#     print $log "$systemcommand\n" if $log;
-    #`$systemcommand`;
-    unlink "$main::tempfilelocation/$stamp" or print $log "\nCannot delete $main::tempfilelocation/$stamp.tmp\n" if $log;
-    open (TMP,"<:utf8","$main::tempfilelocation/$stamp.tmp"); #!#
-    my @words;
-    while (<TMP>) {
+    my $wordstring=join("\n",@tokens);
+    my $systemcommand = "echo \$\'$wordstring\' | $main::taggerlocation/tree-tagger-french";
+    print $log "$systemcommand\n" if $log;
+    @taggeroutput = `$systemcommand`;
+    if (@taggeroutput < 1) {
+	print $log "No tagger output\n";
+    }
+    foreach (@taggeroutput) {
     	chomp;
-	    ($tok,$tag,$lem)=split(/\t/,$_);
-	    if (defined($tok)) {
-        @lem=split(/\|/,$lem); #!#
-# 	    print $log "\t$tok\t$tag\n" if $log;
-	        $word=word->new(logfile,$pkg->{logfile},
+	utf8::decode $_;
+	($tok,$tag,$lem)=split(/\t/,$_);
+	if (defined($tok)) {
+	    @lem=split(/\|/,$lem); #!#
+ 	    print $log "\t$tok\t$tag\n" if $log;
+	    $word=word->new(logfile,$pkg->{logfile},
 			    target,$pkg->{target},
 			    token,$tok,
 			    tag,$tag,
 			    lemma,$lem[0], #!#
 			    wordnetdb,$pkg->{wordnetdb});
 	    push(@words,$word);
-	   }
+	}
     }
-    unlink "$main::tempfilelocation/$stamp.tmp" or print $log "\nCannot delete $main::tempfilelocation/$stamp.tmp\n" if $log;
     $pkg->{words}=[@words];
-#     print $log "--------------\n" if $log;
+    print $log "--------------\n" if $log;
 }
 
 sub findNamedEntities_cityPerso { #!#

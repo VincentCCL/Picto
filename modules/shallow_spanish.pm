@@ -92,10 +92,10 @@ sub tag {
             print $log "\t$tok\t$tag\t$lemma\n";
 	    if ((($tag eq 'VLfin') || ($tag eq 'VEfin') || ($tag eq 'VSfin') ||  ($tag eq 'VHfin')) && (($tok=~/.*o$/) || ($tok=~/.*é$/) || ($tok=~/.*í$/) || ($tok=~/^he$/) ||  ($tok=~/^soy$/) || ($tok=~/^voy$/) || ($tok=~/^estoy$/) || ($tok=~/^estaba$/))) {
                 for ($i-1) {
-                   if (@lastthreetokens[$_] eq 'yo') {
+		    if (@lastthreetokens[$_] eq 'yo') {
                         $flag=1;
                         last;
-                   }
+		    }
                 }
                 for ($i-2) {
                    if (@lastthreetokens[$_] eq 'yo') {

@@ -13,34 +13,34 @@ $VERSION="1.0"; # 01.12.20 French version based on synset_spanish.pm / synset_du
 1;
 
 #---------------------------------------
-package cornetto;
+#package cornetto;
 #---------------------------------------
 
-@ISA=("wordnet");
+#@ISA=("wordnet");
 
-$database="fre30"; #!# spa30 / wonef30cfp
-$host="gobelijn";
-$port="5432";
-$user="vincent";
-$pwd="vincent";
+#$database="fre30"; #!# spa30 / wonef30cfp
+#$host="gobelijn";
+#$port="5432";
+#$user="vincent";
+#$pwd="vincent";
 
 #---------------------------------------
-package object;
+#package object;
 #---------------------------------------
 
 # ->openWordnet # Used to be openCornetto
 
-sub openWordnet {
-    my ($pkg)=@_;
-    unless ($pkg->{wordnetdb}) {
-	my $db=DBI::db->new($cornetto::database,
-			    $cornetto::host,
-			    $cornetto::port,
-			    $cornetto::user,
-			    $cornetto::pwd);
-	$pkg->{wordnetdb}=$db;
-    }
-}
+#sub openWordnet {
+#    my ($pkg)=@_;
+#    unless ($pkg->{wordnetdb}) {
+#	my $db=DBI::db->new($cornetto::database,
+#			    $cornetto::host,
+#			    $cornetto::port,
+#			    $cornetto::user,
+#			    $cornetto::pwd);
+#	$pkg->{wordnetdb}=$db;
+#   }
+#}
 
 #---------------------------------------
 package word;

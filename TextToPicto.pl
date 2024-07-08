@@ -54,6 +54,8 @@ $VERSION="4.0";
 use FindBin qw($Bin); 
 use Encode qw(decode);
 require "$Bin/modules/GenericFunctions.pm";
+use utf8; #!#                                                                                                                                           
+use MIME::Base64;
 
 #---------------------------------------
 
@@ -61,7 +63,6 @@ require "$Bin/modules/GenericFunctions.pm";
 
 
 # Libraries 
-
 require "$Bin/modules/object.pm";
 require "$Bin/modules/Database.pm";
 require "$Bin/modules/synset.pm";

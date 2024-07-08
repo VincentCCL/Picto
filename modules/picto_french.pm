@@ -11,10 +11,9 @@
 $VERSION="2.1"; # 15.03.2021 Tryout in lookupPictoDictionary (see lookupSynonymResyf in picto.pm)
 #$VERSION="1.0"; # 22.02.2021 French version based on picto_spanish.pm (VERSION="1.3")
 
-require "$Bin/sclera.pm"; #!# sclera_spanish.pm
-require "$Bin/beta.pm"; #!# beta_spanish.pm
-require "$Bin/arasaac.pm"; #!#
-#require "$Bin/imagenet_spanish.pm";
+require "$Bin/modules/sclera.pm"; 
+require "$Bin/modules/beta.pm"; 
+require "$Bin/modules/arasaac.pm"; 
 
 use utf8; #!#
 

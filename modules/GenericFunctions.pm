@@ -1,7 +1,8 @@
 # GenericFunctions.pm
 1; #-------------------
 
-$VERSION="1.2"; # added hindi to the possible source languages and default value for hyperparameters when source and target language are not set
+$VERSION="2.0"; # french added
+#$VERSION="1.2"; # added hindi to the possible source languages and default value for hyperparameters when source and target language are not set
 #$VERSION="1.1";  # 29.03.2021 WSD only loaded when activated
 #$VERSION="1.0"; # Initial version
 # Default and configuration values
@@ -71,116 +72,183 @@ sub LoadWSDConfig {
 }
 
 sub LoadDefaultValues {
- ###### DEFAULT VALUES ###############################
- our (%default,%verbose);
- # source and target language
- $default{'s'}='dutch';
- $verbose{'s'}="-s Source language (dutch/english/spanish)";
- $options{'s'}={'dutch'   => 1,
-                'english' => 1,
-                'spanish' => 1,
-		'hindi' =>1};
+    ###### DEFAULT VALUES ###############################
+    our (%default,%verbose);
+    # source and target language
+    $default{'s'}='dutch';
+    $verbose{'s'}="-s Source language (dutch/english/spanish/french)";
+    $options{'s'}={'dutch'   => 1,
+		   'english' => 1,
+		   'spanish' => 1,
+		   'french' =>1};
+    
+    $default{'p'}='sclera';
+    $verbose{'p'}="-p Target pictograph set (sclera/beta/rand/arasaac)";
+    $options{'p'}={'sclera'   => 1,
+		   'beta'     => 1,
+		   'rand'     => 1,
+		   'arasaac'  => 1,};
+    
+    $default{'o'}='html';
+    $verbose{'o'}="-o Output mode (html/text/json/paralleljson)";
+    $options{'o'}={'html'    => 1,
+		   'text'    => 1,
+		   'json'    => 1,
+		   'paralleljson' => 1};
+    
+    # modules
+    $default{'e'}='off';
+    $verbose{'e'}="-e Spell checker (on/off)";
+    $options{'e'}={'on'   => 1,
+		   'off' => 1};
+    
+    $default{'b'}='off';
+    $verbose{'b'}="-b WSD module (on/off)";
+    $options{'b'}={'on'   => 1,
+		   'off' => 1};
+    
+    $default{'c'}='none';
+    $verbose{'c'}="-c Simplification level (none/simplify/compress)";
+    $options{'c'}={'none'     => 1,
+		   'simplify' => 1,
+		   'compress' => 1};
+    
+    $default{'t'}='off';
+    $verbose{'t'}="-t Time analysis module (only works with -c simplify) (on/off)";
+    $options{'t'}={'on'   => 1,
+		   'off' => 1};
 
- $default{'p'}='sclera';
- $verbose{'p'}="-p Target pictograph set (sclera/beta/rand)";
- $options{'p'}={'sclera'   => 1,
-                'beta'     => 1,
-                'rand'     => 1,
-                'arasaac'  => 1,};
+    # runtime parameters
+    $default{'z'}=120;
+    $verbose{'z'}="-z maxtime (seconds)";
+    
+    $default{'v'}={"dutch,beta"   => 2,
+		   "dutch,sclera" => 8,
+		   "english,beta" => 9,
+		   "english,sclera" => 2,
+		   "spanish,beta" => 4,
+		   "spanish,sclera" => 0,
+		   "french,beta" => 2,
+		   "french,sclera" => 5,
+		   "french,arasaac" => 2,
+		   "" => 1};
+    $verbose{'v'}="-v Out of Vocabulary penalty";
 
- $default{'o'}='html';
- $verbose{'o'}="-o Output mode (html/text/json/paralleljson)";
- $options{'o'}={'html'    => 1,
-                'text'    => 1,
-                'json'    => 1,
-                'paralleljson' => 1};
+    $default{'w'}={"dutch,beta"   => 2,
+		   "dutch,sclera" => 4,
+		   "english,beta" => 0,
+		   "english,sclera" => 0,
+		   "spanish,beta" => 2,
+		   "spanish,sclera" => 1,
+		   "french,beta" => 8,
+		   "french,sclera" => 2,
+		   "french,arasaac" => 6,
+		   "" =>1};
+    $verbose{'w'}="-w Wrong number penalty";
 
- # modules
- $default{'e'}='off';
- $verbose{'e'}="-e Spell checker (on/off)";
- $options{'e'}={'on'   => 1,
-                'off' => 1};
+    $default{'n'}={"dutch,beta"   => 9,
+		   "dutch,sclera" => 6,
+		   "english,beta" => 4,
+		   "english,sclera" => 2,
+		   "spanish,beta" => 5,
+		   "spanish,sclera" => 4,
+		   "french,beta" => 3,
+		   "french,sclera" => 2,
+		   "french,arasaac" => 10,
+		   "" => 1};
+    
+    $verbose{'n'}="-n No Number penalty";
+    
+    $default{'h'}={"dutch,beta"   => 7,
+		   "dutch,sclera" => 4,
+		   "english,beta" => 7,
+		   "english,sclera" => 8,
+		   "spanish,beta" => 4,
+		   "spanish,sclera" => 3,
+		   "french,beta"   => 9, 
+		   "french,sclera"  => 13, 
+		   "french,arasaac" => 10,      
+		   "" => 1};
+    $verbose{'h'}="-h Hyperonym penalty";
 
- $default{'b'}='off';
- $verbose{'b'}="-b WSD module (on/off)";
- $options{'b'}={'on'   => 1,
-                'off' => 1};
+    $default{'k'}={"dutch,beta"   => 6,
+		   "dutch,sclera" => 3,
+		   "english,beta" => 10,
+		   "english,sclera" => 10,
+		   "spanish,beta" => 1,
+		   "spanish,sclera" => 2,
+		   "french,beta"   => 10, 
+		   "french,sclera"  => 3,
+		   "french,arasaac" => 9,
+		   "" => 1};
+    $verbose{'k'}="-k XposNearSynonym penalty";
 
- $default{'c'}='none';
- $verbose{'c'}="-c Simplification level (none/simplify/compress)";
- $options{'c'}={'none'     => 1,
-                'simplify' => 1,
-                'compress' => 1};
+    $default{'a'}={"dutch,beta"   => 7,
+		   "dutch,sclera" => 2,
+		   "english,beta" => 9,
+		   "english,sclera" => 7,
+		   "spanish,beta" => 10,
+		   "spanish,sclera" => 6,
+		   "french,beta"   => 6,            
+		   "french,sclera"  => 6,
+		   "french,arasaac" => 2,
+		   "" => 1};
+    $verbose{'a'}="-a Antonym penalty";
 
- $default{'t'}='off';
- $verbose{'t'}="-t Time analysis module (only works with -c simplify) (on/off)";
- $options{'t'}={'on'   => 1,
-                'off' => 1};
+    $default{'f'}={"dutch,beta"   => 8,
+		   "dutch,sclera" => 11,
+		   "english,beta" => 19,
+		   "english,sclera" => 9,
+		   "spanish,beta" => 10,
+		   "spanish,sclera" => 10,
+		   "french,beta"   => 12,
+		   "french,sclera"  => 11,
+		   "french,arasaac" => 12,
+		   "" => 8};
+    $verbose{'f'}="-f Penalty Threshold";
 
- # runtime parameters
- $default{'z'}=120;
- $verbose{'z'}="-z maxtime (seconds)";
+    $default{'d'}={"dutch,beta"   => 5,
+		   "dutch,sclera" => 3,
+		   "english,beta" => 8,
+		   "english,sclera" => 6,
+		   "spanish,beta" => 5,
+		   "spanish,sclera" => 5,
+		   "french,beta"   => 5, 
+		   "french,sclera"  => 12,
+		   "french,arasaac" => 9,
+		   ""=> 1};
+    $verbose{'d'}="-d Dictionary Advantage";
 
- $default{'v'}={"dutch,beta"   => 2,
-               "dutch,sclera" => 8,
-		"" => 1};
- $verbose{'v'}="-v Out of Vocabulary penalty";
-
- $default{'w'}={"dutch,beta"   => 2,
-               "dutch,sclera" => 4,
-		"" =>1};
- $verbose{'w'}="-w Wrong number penalty";
-
- $default{'n'}={"dutch,beta"   => 9,
-               "dutch,sclera" => 6,
-		"" => 1};
- $verbose{'n'}="-n No Number penalty";
-
- $default{'h'}={"dutch,beta"   => 7,
-               "dutch,sclera" => 4,
-		"" => 1};
- $verbose{'h'}="-h Hyperonym penalty";
-
- $default{'k'}={"dutch,beta"   => 6,
-               "dutch,sclera" => 3,
-		"" => 1};
- $verbose{'k'}="-k XposNearSynonym penalty";
-
- $default{'a'}={"dutch,beta"   => 7,
-               "dutch,sclera" => 2,
-		"" => 1};
- $verbose{'a'}="-a Antonym penalty";
-
- $default{'f'}={"dutch,beta"   => 8,
-               "dutch,sclera" => 11,
-		"" => 8};
- $verbose{'f'}="-f Penalty Threshold";
-
- $default{'d'}={"dutch,beta"   => 5,
-               "dutch,sclera" => 3,
-		""=> 1};
- $verbose{'d'}="-d Dictionary Advantage";
-
- $default{'r'}={"dutch,beta"   => 2,
-               "dutch,sclera" => 2, 
-		"" => 1};
- $verbose{'r'}="-r WSD weight";
-
- # database parameters
- $default{'g'}={"dutch,beta" => "cornetto3",
-		"dutch,sclera" => "cornetto3",
-		"english,beta" => "princeton30new",
-		"english,sclera" => "princeton30new",
-		"" => "cornetto3" };
- $verbose{'g'}="-g Picto database name";
- $default{'j'}="localhost";
- $verbose{'j'}="-j Picto database host";
- $default{'m'}="5432";
- $verbose{'m'}="-m Picto database port";
- $default{'u'}="vincent";
- $verbose{'u'}="-u Picto database user";
- $default{'q'}="vincent";
- $verbose{'q'}="-q Picto database password";
+    $default{'r'}={"dutch,beta"   => 2,
+		   "dutch,sclera" => 2, 
+		   "english,sclera" => 2,
+		   "english,beta" => 2,
+		   "french,beta"   => 2,
+		   "french,sclera"  => 2,
+		   "french,arasaac" => 2,
+		   "" => 1};
+    $verbose{'r'}="-r WSD weight";
+    
+    # database parameters
+    $default{'g'}={"dutch,beta" => "cornetto3",
+		   "dutch,sclera" => "cornetto3",
+		   "english,beta" => "princeton30new",
+		   "english,sclera" => "princeton30new",
+		   "spanish,sclera" => "spa30new",
+		   "spanish,beta" => "spa30new",
+		   "french,sclera" => "fre30",
+		   "french,beta" => "fre30",
+		   "french,arasaac" => "fre30",
+		   "" => "cornetto3" };
+    $verbose{'g'}="-g Picto database name";
+    $default{'j'}="localhost";
+    $verbose{'j'}="-j Picto database host";
+    $default{'m'}="5432";
+    $verbose{'m'}="-m Picto database port";
+    $default{'u'}="vincent";
+    $verbose{'u'}="-u Picto database user";
+    $default{'q'}="vincent";
+    $verbose{'q'}="-q Picto database password";
 }
 
 sub processOptions {

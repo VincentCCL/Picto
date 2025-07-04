@@ -232,6 +232,7 @@ sub LoadDefaultValues {
     # database parameters
     $default{'g'}={"dutch,beta" => "cornetto3",
 		   "dutch,sclera" => "cornetto3",
+		   "dutch,rand" => "cornetto3",
 		   "english,beta" => "princeton30new",
 		   "english,sclera" => "princeton30new",
 		   "spanish,sclera" => "spa30new",

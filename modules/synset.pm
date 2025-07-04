@@ -95,8 +95,8 @@ sub addLexUnits {
     unless ($lemma=$pkg->{lemma}) {
 	$lemma=$pkg->{token};
     }
-#     my $log=$pkg->{logfile};
-#     print $log "\tAdd LexUnits for $lemma\n" if $log;
+    my $log=$pkg->{logfile};
+    print $log "\tAdd LexUnits for $lemma\n" if $log;
     $lemma=~s/'/\\\'/g; 
     my $sql="select id,wsdfreq from lexunits where lemma='$lemma' and disable is null;";
     my $results=$pkg->{wordnetdb}->lookup($sql);
@@ -108,14 +108,14 @@ sub addLexUnits {
 			      wordnetdb,$pkg->{wordnetdb},
 			      target,$pkg->{target},
 			      logfile,$pkg->{logfile});
-# 	print $log "\tid: $_->[0]\n";
+ 	print $log "\tid: $_->[0]\n";
         push(@lexunits,$lexunit);
     }
     if (@lexunits>0) {
 	$pkg->{lexunits}=[@lexunits];
     }
     else {
-# 	print $log "\tno lexunit id found in database\n";
+ 	print $log "\tno lexunit id found in database\n";
         return undef;
     }
 }
@@ -138,11 +138,11 @@ package lexunit;
 
 sub addSynset { 
     my ($pkg)=@_;
-#     my $log=$pkg->{logfile};
+     my $log=$pkg->{logfile};
     my $id=$pkg->{id};
     my $sql="select synset from lex2syn where lexunit='$id';";
     my $results=$pkg->{wordnetdb}->lookup($sql);
-#     print $log "\tAdd Synset to Lexunit $id: " if $log;
+     print $log "\tAdd Synset to Lexunit $id: " if $log;
     if ($results->[0]->[0]) {
 	my $synset=synset->new(synset,$results->[0]->[0],
 		               freq,$pkg->{freq},
@@ -150,12 +150,12 @@ sub addSynset {
 			       target,$pkg->{target},
 			       logfile,$pkg->{logfile});
 	$pkg->{synset}=$synset;
-#        print $log "synset $results->[0]->[0]\n" if $log;
+        print $log "synset $results->[0]->[0]\n" if $log;
 	$synset->addPos;
 	return 1;
     }
     else {
-#         print $log "No synset found\n" if $log;
+         print $log "No synset found\n" if $log;
 	return undef;
     }
 }
@@ -178,7 +178,7 @@ sub addLemma {
 	$pkg->{lexunits}=[@lexunits];
     }
     else {
-# 	print $log "\tno lexunit id found in database\n" if $log;
+ 	print $log "\tno lexunit id found in database\n" if $log;
         next;
     }
 }
